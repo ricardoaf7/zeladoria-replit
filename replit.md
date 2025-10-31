@@ -8,6 +8,38 @@ The application combines interactive mapping with service area management, autom
 
 ## Recent Changes (October 31, 2025)
 
+### Color Palette Refinement
+- Updated entire application to use deep blue (#1e1c3e) as primary brand color
+- Sidebar, map legend, and tooltips now use consistent semi-transparent dark blue backgrounds (rgba(30, 28, 62, 0.95))
+- CSS custom properties defined in :root for centralized palette management
+- Theme works consistently across light and dark modes
+
+### Manual Batch Scheduling System
+- **Schema Extensions**: Added `proximaPrevisao` (next forecast date), `manualSchedule` (boolean flag), and `daysToComplete` fields to ServiceArea model
+- **Automatic Scheduling Protection**: Modified `calculateMowingSchedule()` to skip areas flagged with `manualSchedule === true`, preventing automatic recalculation from overwriting user-defined schedules
+- **Backend Methods**: Implemented `addHistoryEntry()` and `batchScheduleAreas()` in storage layer
+- **API Endpoints**: 
+  - `POST /api/areas/:id/history` - Add history entry to area
+  - `PATCH /api/areas/batch-schedule` - Schedule multiple areas with manual flag
+
+### Multi-Selection Interface
+- **Selection Mode Toggle**: Added "Selecionar" button in sidebar that activates multi-select mode for roçagem areas
+- **Visual Feedback**: Selected areas display in purple (#9333ea) to distinguish from status colors
+- **Interactive Map**: Click areas to toggle selection; selected state persists across map interactions
+- **BatchSchedulePanel Component**: New sidebar panel showing:
+  - Selected area counter with purple highlight
+  - Date input for scheduled start date
+  - Optional days-to-complete input
+  - "Limpar" and "Agendar Lote" action buttons
+  - Real-time validation and toast notifications
+
+### Enhanced Area Information Card
+- **Scheduling Type Badge**: Shows "Manual" or "Automático" badge next to scheduled date
+- **Next Forecast Display**: Shows `proximaPrevisao` field when available
+- **History Timeline**: Displays last 5 maintenance events with dates and status
+- **Inline Editing**: Click "Editar" to transform fields into editable inputs; changes save via PATCH /api/areas/:id with Zod validation
+- **State Synchronization**: Implements onUpdate callback chain to ensure selectedArea state updates immediately after saving edits
+
 ### Sidebar Redesign
 - Implemented dark-themed accordion-style sidebar with expandable sections for "LIMPEZA URBANA" (7 services) and "RESÍDUOS" (5 services)
 - Added appropriate Lucide React icons for each service (Scissors for Roçagem, Flower2 for Jardins, etc.)
@@ -15,17 +47,10 @@ The application combines interactive mapping with service area management, autom
 - Design matches IBM Carbon System principles with dark background and elevated containers
 
 ### Interactive Map Enhancements
-- **Tooltips on Hover**: All map markers (areas and teams) display tooltips when hovering with mouse, showing relevant information (address, service type, scheduled date for areas; team ID, type, status, and lot for teams)
-- **Draggable Markers**: Areas without polygons can be repositioned by dragging markers; position changes persist automatically via PATCH /api/areas/:id/position endpoint
-- **Layer Ordering**: Area markers and polygons render above team markers to ensure clickability (implemented with bringToFront() with type guards)
-
-### Area Information Card
-- Replaced modal-based details with inline sidebar card (AreaInfoCard component)
-- Card displays when clicking on area marker/polygon: Location, Neighborhood, Type, Area m², Lot, History
-- Map automatically focuses on selected area with panTo and zoom
-- **Inline Editing**: Click "Editar" to transform fields into editable inputs; changes save via PATCH /api/areas/:id with Zod validation
-- **State Synchronization**: Implements onUpdate callback chain to ensure selectedArea state updates immediately after saving edits
-- Type safety guards prevent runtime errors (typeof checks for status field before string operations)
+- **Tooltips on Hover**: All map markers (areas and teams) display tooltips when hovering with mouse, showing relevant information
+- **Draggable Markers**: Areas without polygons can be repositioned by dragging markers; position changes persist automatically
+- **Layer Ordering**: Area markers and polygons render above team markers to ensure clickability
+- **Selection Visual**: Purple color overlay for selected areas in batch selection mode
 
 ## User Preferences
 
