@@ -9,6 +9,8 @@ export interface IStorage {
   updateAreaPolygon(id: number, polygon: Array<{ lat: number; lng: number }>): Promise<ServiceArea | undefined>;
   updateAreaPosition(id: number, lat: number, lng: number): Promise<ServiceArea | undefined>;
   updateArea(id: number, data: Partial<ServiceArea>): Promise<ServiceArea | undefined>;
+  addHistoryEntry(areaId: number, entry: { date: string; status: string; observation?: string }): Promise<ServiceArea | undefined>;
+  batchScheduleAreas(areaIds: number[], scheduledDate: string, daysToComplete?: number): Promise<ServiceArea[]>;
   
   // Teams
   getAllTeams(): Promise<Team[]>;
@@ -39,12 +41,13 @@ function calculateMowingSchedule(areas: ServiceArea[], config: AppConfig): void 
   let currentDateLote1 = new Date();
   let currentDateLote2 = new Date();
 
+  // Pular áreas com agendamento manual (manualSchedule === true)
   const lote1Areas = areas
-    .filter(a => a.lote === 1 && a.status === "Pendente")
+    .filter(a => a.lote === 1 && a.status === "Pendente" && !a.manualSchedule)
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
   const lote2Areas = areas
-    .filter(a => a.lote === 2 && a.status === "Pendente")
+    .filter(a => a.lote === 2 && a.status === "Pendente" && !a.manualSchedule)
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
   lote1Areas.forEach(area => {
@@ -91,27 +94,27 @@ export class MemStorage implements IStorage {
 
   private initializeRocagemAreas(): ServiceArea[] {
     const sampleAreas: ServiceArea[] = [
-      { id: 1, ordem: 1, tipo: "area publica", endereco: "Av Jorge Casoni - Terminal Rodoviário", bairro: "Casoni", metragem_m2: 29184.98, lat: -23.3044206, lng: -51.1513729, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 2, ordem: 2, tipo: "praça", endereco: "Rua Carijós c/ Oraruana", bairro: "Paraná", metragem_m2: 2332.83, lat: -23.3045262, lng: -51.1480067, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 3, ordem: 3, tipo: "area publica", endereco: "Av Saul Elkind", bairro: "Lago Parque", metragem_m2: 15234.56, lat: -23.2987, lng: -51.1623, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 4, ordem: 4, tipo: "canteiro", endereco: "Av Madre Leônia Milito", bairro: "Centro", metragem_m2: 8765.43, lat: -23.3101, lng: -51.1628, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 5, ordem: 5, tipo: "area publica", endereco: "Praça Sete de Setembro", bairro: "Centro", metragem_m2: 12456.78, lat: -23.3099, lng: -51.1603, lote: 1, status: "Em Execução", history: [{ date: new Date().toISOString(), status: "Iniciado", observation: "Equipe 1 iniciou trabalho" }], polygon: null, scheduledDate: null },
-      { id: 6, ordem: 6, tipo: "praça", endereco: "Praça Rocha Pombo", bairro: "Vila Nova", metragem_m2: 9876.54, lat: -23.3142, lng: -51.1578, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 7, ordem: 7, tipo: "area publica", endereco: "Av Bandeirantes", bairro: "Bandeirantes", metragem_m2: 18765.43, lat: -23.2876, lng: -51.1456, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 8, ordem: 8, tipo: "canteiro", endereco: "Av Ayrton Senna", bairro: "Gleba Palhano", metragem_m2: 21234.56, lat: -23.2834, lng: -51.1823, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 9, ordem: 9, tipo: "area publica", endereco: "Parque Arthur Thomas", bairro: "Nova Londrina", metragem_m2: 45678.90, lat: -23.3167, lng: -51.1789, lote: 1, status: "Concluído", history: [{ date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: "Concluído" }], polygon: null, scheduledDate: null },
-      { id: 10, ordem: 10, tipo: "praça", endereco: "Praça Willie Davids", bairro: "Heimtal", metragem_m2: 7654.32, lat: -23.3234, lng: -51.1423, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
+      { id: 1, ordem: 1, tipo: "area publica", endereco: "Av Jorge Casoni - Terminal Rodoviário", bairro: "Casoni", metragem_m2: 29184.98, lat: -23.3044206, lng: -51.1513729, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 2, ordem: 2, tipo: "praça", endereco: "Rua Carijós c/ Oraruana", bairro: "Paraná", metragem_m2: 2332.83, lat: -23.3045262, lng: -51.1480067, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 3, ordem: 3, tipo: "area publica", endereco: "Av Saul Elkind", bairro: "Lago Parque", metragem_m2: 15234.56, lat: -23.2987, lng: -51.1623, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 4, ordem: 4, tipo: "canteiro", endereco: "Av Madre Leônia Milito", bairro: "Centro", metragem_m2: 8765.43, lat: -23.3101, lng: -51.1628, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 5, ordem: 5, tipo: "area publica", endereco: "Praça Sete de Setembro", bairro: "Centro", metragem_m2: 12456.78, lat: -23.3099, lng: -51.1603, lote: 1, status: "Em Execução", history: [{ date: new Date().toISOString(), status: "Iniciado", observation: "Equipe 1 iniciou trabalho" }], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 6, ordem: 6, tipo: "praça", endereco: "Praça Rocha Pombo", bairro: "Vila Nova", metragem_m2: 9876.54, lat: -23.3142, lng: -51.1578, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 7, ordem: 7, tipo: "area publica", endereco: "Av Bandeirantes", bairro: "Bandeirantes", metragem_m2: 18765.43, lat: -23.2876, lng: -51.1456, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 8, ordem: 8, tipo: "canteiro", endereco: "Av Ayrton Senna", bairro: "Gleba Palhano", metragem_m2: 21234.56, lat: -23.2834, lng: -51.1823, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 9, ordem: 9, tipo: "area publica", endereco: "Parque Arthur Thomas", bairro: "Nova Londrina", metragem_m2: 45678.90, lat: -23.3167, lng: -51.1789, lote: 1, status: "Concluído", history: [{ date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: "Concluído" }], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 10, ordem: 10, tipo: "praça", endereco: "Praça Willie Davids", bairro: "Heimtal", metragem_m2: 7654.32, lat: -23.3234, lng: -51.1423, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
       
-      { id: 101, ordem: 1, tipo: "area publica", endereco: "Av Duque de Caxias", bairro: "Zona Sul", metragem_m2: 32145.67, lat: -23.3367, lng: -51.1534, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 102, ordem: 2, tipo: "canteiro", endereco: "Av Inglaterra", bairro: "Cinco Conjuntos", metragem_m2: 11234.56, lat: -23.3278, lng: -51.1745, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 103, ordem: 3, tipo: "praça", endereco: "Praça Maringá", bairro: "Cervejaria", metragem_m2: 8765.43, lat: -23.3189, lng: -51.1667, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 104, ordem: 4, tipo: "area publica", endereco: "Av JK", bairro: "Tucanos", metragem_m2: 19876.54, lat: -23.3445, lng: -51.1623, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 105, ordem: 5, tipo: "canteiro", endereco: "Av Higienópolis", bairro: "Higienópolis", metragem_m2: 14567.89, lat: -23.3123, lng: -51.1489, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 106, ordem: 6, tipo: "area publica", endereco: "Parque Guanabara", bairro: "Guanabara", metragem_m2: 28765.43, lat: -23.2989, lng: -51.1823, lote: 2, status: "Em Execução", history: [{ date: new Date().toISOString(), status: "Iniciado" }], polygon: null, scheduledDate: null },
-      { id: 107, ordem: 7, tipo: "praça", endereco: "Praça Santos Dumont", bairro: "Aeroporto", metragem_m2: 9876.54, lat: -23.3034, lng: -51.1378, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 108, ordem: 8, tipo: "area publica", endereco: "Av Tiradentes", bairro: "Centro", metragem_m2: 16543.21, lat: -23.3087, lng: -51.1645, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 109, ordem: 9, tipo: "canteiro", endereco: "Av Dez de Dezembro", bairro: "Centro", metragem_m2: 12345.67, lat: -23.3112, lng: -51.1590, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 110, ordem: 10, tipo: "praça", endereco: "Praça Primeiro de Maio", bairro: "Ouro Branco", metragem_m2: 8901.23, lat: -23.3267, lng: -51.1501, lote: 2, status: "Concluído", history: [{ date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: "Concluído" }], polygon: null, scheduledDate: null },
+      { id: 101, ordem: 1, tipo: "area publica", endereco: "Av Duque de Caxias", bairro: "Zona Sul", metragem_m2: 32145.67, lat: -23.3367, lng: -51.1534, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 102, ordem: 2, tipo: "canteiro", endereco: "Av Inglaterra", bairro: "Cinco Conjuntos", metragem_m2: 11234.56, lat: -23.3278, lng: -51.1745, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 103, ordem: 3, tipo: "praça", endereco: "Praça Maringá", bairro: "Cervejaria", metragem_m2: 8765.43, lat: -23.3189, lng: -51.1667, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 104, ordem: 4, tipo: "area publica", endereco: "Av JK", bairro: "Tucanos", metragem_m2: 19876.54, lat: -23.3445, lng: -51.1623, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 105, ordem: 5, tipo: "canteiro", endereco: "Av Higienópolis", bairro: "Higienópolis", metragem_m2: 14567.89, lat: -23.3123, lng: -51.1489, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 106, ordem: 6, tipo: "area publica", endereco: "Parque Guanabara", bairro: "Guanabara", metragem_m2: 28765.43, lat: -23.2989, lng: -51.1823, lote: 2, status: "Em Execução", history: [{ date: new Date().toISOString(), status: "Iniciado" }], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 107, ordem: 7, tipo: "praça", endereco: "Praça Santos Dumont", bairro: "Aeroporto", metragem_m2: 9876.54, lat: -23.3034, lng: -51.1378, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 108, ordem: 8, tipo: "area publica", endereco: "Av Tiradentes", bairro: "Centro", metragem_m2: 16543.21, lat: -23.3087, lng: -51.1645, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 109, ordem: 9, tipo: "canteiro", endereco: "Av Dez de Dezembro", bairro: "Centro", metragem_m2: 12345.67, lat: -23.3112, lng: -51.1590, lote: 2, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 110, ordem: 10, tipo: "praça", endereco: "Praça Primeiro de Maio", bairro: "Ouro Branco", metragem_m2: 8901.23, lat: -23.3267, lng: -51.1501, lote: 2, status: "Concluído", history: [{ date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: "Concluído" }], polygon: null, scheduledDate: null, manualSchedule: false },
     ];
 
     const tipos = ["area publica", "praça", "canteiro", "rotatória"];
@@ -136,6 +139,7 @@ export class MemStorage implements IStorage {
         history: [],
         polygon: null,
         scheduledDate: null,
+        manualSchedule: false,
       };
       sampleAreas.push(area);
     }
@@ -145,11 +149,11 @@ export class MemStorage implements IStorage {
 
   private initializeJardinsAreas(): ServiceArea[] {
     return [
-      { id: 1001, tipo: "ROT", endereco: "Av. Henrique Mansano x Av. Lucia Helena Gonçalves Vianna (Sanepar)", servico: "Manutenção", lat: -23.282252, lng: -51.155120, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 1002, tipo: "ROT", endereco: "Av. Maringá x Rua Prof. Joaquim de Matos Barreto (Aterro Maior)", servico: "Irrigação", lat: -23.324934, lng: -51.176449, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 1003, tipo: "ROT", endereco: "Praça Rocha Pombo", servico: "Manutenção", lat: -23.314200, lng: -51.157800, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 1004, tipo: "ROT", endereco: "Parque Arthur Thomas", servico: "Irrigação", lat: -23.316700, lng: -51.178900, status: "Pendente", history: [], polygon: null, scheduledDate: null },
-      { id: 1005, tipo: "ROT", endereco: "Jardim Botânico", servico: "Manutenção", lat: -23.328900, lng: -51.156700, status: "Pendente", history: [], polygon: null, scheduledDate: null },
+      { id: 1001, tipo: "ROT", endereco: "Av. Henrique Mansano x Av. Lucia Helena Gonçalves Vianna (Sanepar)", servico: "Manutenção", lat: -23.282252, lng: -51.155120, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 1002, tipo: "ROT", endereco: "Av. Maringá x Rua Prof. Joaquim de Matos Barreto (Aterro Maior)", servico: "Irrigação", lat: -23.324934, lng: -51.176449, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 1003, tipo: "ROT", endereco: "Praça Rocha Pombo", servico: "Manutenção", lat: -23.314200, lng: -51.157800, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 1004, tipo: "ROT", endereco: "Parque Arthur Thomas", servico: "Irrigação", lat: -23.316700, lng: -51.178900, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
+      { id: 1005, tipo: "ROT", endereco: "Jardim Botânico", servico: "Manutenção", lat: -23.328900, lng: -51.156700, status: "Pendente", history: [], polygon: null, scheduledDate: null, manualSchedule: false },
     ];
   }
 
@@ -227,6 +231,33 @@ export class MemStorage implements IStorage {
 
     Object.assign(area, data);
     return area;
+  }
+
+  async addHistoryEntry(areaId: number, entry: { date: string; status: string; observation?: string }): Promise<ServiceArea | undefined> {
+    const area = await this.getAreaById(areaId);
+    if (!area) return undefined;
+
+    area.history.push(entry);
+    return area;
+  }
+
+  async batchScheduleAreas(areaIds: number[], scheduledDate: string, daysToComplete?: number): Promise<ServiceArea[]> {
+    const updatedAreas: ServiceArea[] = [];
+
+    for (const areaId of areaIds) {
+      const area = await this.getAreaById(areaId);
+      if (!area) continue;
+
+      area.scheduledDate = scheduledDate;
+      area.manualSchedule = true;
+      if (daysToComplete !== undefined) {
+        area.daysToComplete = daysToComplete;
+      }
+
+      updatedAreas.push(area);
+    }
+
+    return updatedAreas;
   }
 
   async getAllTeams(): Promise<Team[]> {

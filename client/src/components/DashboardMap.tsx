@@ -384,12 +384,12 @@ export function DashboardMap({
     <div className="relative w-full h-full">
       <div ref={mapContainerRef} className="w-full h-full" data-testid="map-container" />
 
-      <div className="absolute bottom-4 left-4 z-[1000] bg-card/95 backdrop-blur-sm border border-card-border rounded-md p-3 shadow-lg" data-testid="map-legend">
-        <h3 className="text-xs font-semibold mb-2 text-card-foreground">Legenda</h3>
+      <div className="absolute bottom-4 left-4 z-[1000] backdrop-blur-sm border rounded-md p-3 shadow-lg" style={{backgroundColor: 'var(--tooltip-bg)', borderColor: 'var(--tooltip-border)'}} data-testid="map-legend">
+        <h3 className="text-xs font-semibold mb-2" style={{color: 'hsl(var(--sidebar-foreground))'}}>Legenda</h3>
         
-        <div className="space-y-3">
+        <div className="space-y-3" style={{color: 'hsl(var(--sidebar-foreground))'}}>
           <div className="space-y-1.5 text-xs">
-            <div className="text-xs font-medium text-muted-foreground mb-1">Status das Áreas</div>
+            <div className="text-xs font-medium mb-1" style={{color: 'hsl(var(--sidebar-foreground))', opacity: 0.8}}>Status das Áreas</div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-map-executing animate-pulse"></div>
               <span>Em Execução</span>
@@ -416,8 +416,8 @@ export function DashboardMap({
             </div>
           </div>
 
-          <div className="space-y-1.5 text-xs border-t border-card-border pt-2">
-            <div className="text-xs font-medium text-muted-foreground mb-1">Tipos de Equipe</div>
+          <div className="space-y-1.5 text-xs border-t pt-2" style={{borderColor: 'var(--tooltip-border)'}}>
+            <div className="text-xs font-medium mb-1" style={{color: 'hsl(var(--sidebar-foreground))', opacity: 0.8}}>Tipos de Equipe</div>
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border border-white shadow-sm" style={{backgroundColor: "hsl(var(--team-giro-zero))"}}>GZ</div>
               <span>Giro Zero</span>

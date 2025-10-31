@@ -193,6 +193,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/areas/:id/history", async (req, res) => {
+    try {
+      const areaId = parseInt(req.params.id);
+      const historyEntrySchema = z.object({
+        date: z.string(),
+        status: z.string(),
+        observation: z.string().optional(),
+      });
+
+      const entry = historyEntrySchema.parse(req.body);
+      const updatedArea = await storage.addHistoryEntry(areaId, entry);
+
+      if (!updatedArea) {
+        res.status(404).json({ error: "Area not found" });
+        return;
+      }
+
+      res.json(updatedArea);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid history entry", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to add history entry" });
+      }
+    }
+  });
+
+  app.patch("/api/areas/batch-schedule", async (req, res) => {
+    try {
+      const batchScheduleSchema = z.object({
+        areaIds: z.array(z.number()),
+        scheduledDate: z.string(),
+        daysToComplete: z.number().optional(),
+      });
+
+      const { areaIds, scheduledDate, daysToComplete } = batchScheduleSchema.parse(req.body);
+      const updatedAreas = await storage.batchScheduleAreas(areaIds, scheduledDate, daysToComplete);
+
+      res.json(updatedAreas);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid batch schedule data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to batch schedule areas" });
+      }
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
