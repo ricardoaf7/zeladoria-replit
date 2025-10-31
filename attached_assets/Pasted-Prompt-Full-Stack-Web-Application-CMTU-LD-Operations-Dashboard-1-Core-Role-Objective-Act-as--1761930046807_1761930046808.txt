@@ -1,0 +1,167 @@
+Prompt: Full-Stack Web Application - CMTU-LD Operations Dashboard
+1. Core Role & Objective
+Act as an expert full-stack developer. Your task is to create a complete, single-file HTML/CSS/JavaScript web application. This application will serve as an operational dashboard for the CMTU-LD (Londrina's Urban Transport and Traffic Company).
+The primary user is the Mayor, so the application must be:
+Highly Visual & Map-Centric: The map is the main interface.
+Modern & Professional: Clean, fast, and fluid UI using Tailwind CSS.
+Responsive: Must work flawlessly on desktop and mobile devices.
+Data-Driven: Must simulate a real-time view of operations based on provided data.
+Localized: All user-facing text (labels, buttons, messages, modal content) must be in Brazilian Portuguese (pt-br).
+2. Core Technologies
+HTML5: For structure.
+Tailwind CSS: For all styling. Load it via CDN: <script src="https://cdn.tailwindcss.com"></script>.
+Leaflet.js: For the interactive map. Load it via CDN:
+CSS: <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" ... />
+JS: <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" ... ></script>
+Leaflet.draw: To enable polygon drawing for area registration.
+CSS: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" ... />
+JS: <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" ... ></script>
+Vanilla JavaScript (ES6+): For all application logic. Do not use any front-end frameworks (React, Vue, etc.).
+3. Application Structure
+Create a single-page application with a full-screen map and a collapsible sidebar.
+index.html (Single File):
+<head>: Load Tailwind, Leaflet, and Leaflet.draw. Include a <style> tag for custom CSS (e.g., map container height). Set language attribute: <html lang="pt-BR">.
+<body>:
+Sidebar (Collapsible):
+Header: App Title (e.g., "CMTU-LD - Dashboard Operacional").
+Layer Controls (Filters / Filtros): Checkboxes to toggle map layers:
+[ ] Roçagem (Lote 1)
+[ ] Roçagem (Lote 2)
+[ ] Manutenção de Jardins
+[ ] Equipes: Giro Zero
+[ ] Equipes: Acabamento
+[ ] Equipes: Coleta (Roçagem)
+[ ] Equipes: Touceiras
+Scheduling Panel (Agendamento):
+A "Planner / Planejador" view showing the calculated schedule for mowing.
+Input fields to configure average production rates (see section 5). Label inputs in pt-br (e.g., "Produção Média Lote 1 (m²/dia)").
+Data Entry Panel (Cadastro/Edição):
+A form to add/edit service areas. Label fields in pt-br (e.g., "Endereço", "Bairro", "Metragem (m²)", etc.).
+Include a button "Desenhar Área no Mapa" to activate Leaflet.draw.
+Main Content:
+A <div> with id="map" that fills 100% of the remaining screen height and width.
+4. In-Memory Database (JavaScript)
+Initialize all data within the <script> tag. The app must be modular.
+// --- DATABASE SIMULATION ---
+
+// Base configuration for scheduling. Make these editable in the UI.
+const APP_CONFIG = {
+    mowingProductionRate: {
+        lote1: 25000, // Assume 25,000 m²/day for Lote 1
+        lote2: 20000  // Assume 20,000 m²/day for Lote 2
+    }
+};
+
+// Main data structure
+const db = {
+    services: [
+        {
+            id: "rocagem",
+            name: "Roçagem de Áreas Públicas",
+            areas: [
+                // Populate this array from 'green_map.pdf' data
+                // Example structure:
+                { id: 1, ordem: 1, tipo: "area publica", endereco: "av jorge casoni - terminal rodoviario", bairro: "casoni", metragem_m2: 29184.98, lat: -23.3044206, lng: -51.1513729, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
+                { id: 2, ordem: 2, tipo: "praça", endereco: "rua carijós c oraruana", bairro: "paraná", metragem_m2: 2332.83, lat: -23.3045262, lng: -51.1480067, lote: 1, status: "Pendente", history: [], polygon: null, scheduledDate: null },
+                // ... add all 1125 entries from green_map.pdf, correctly parsing Lote 1 and Lote 2
+            ]
+        },
+        {
+            id: "jardins",
+            name: "Manutenção de Jardins",
+            areas: [
+                // Populate this array from 'manutencao_jardins.pdf' data
+                // Example structure:
+                { id: 26, tipo: "ROT", endereco: "Av. Henrique Mansano x Av. Lucia Helena Gonçalves Vianna (Sanepar)", servico: "Manuten...", lat: -23.282252, lng: -51.155120 },
+                { id: 5, tipo: "ROT", endereco: "Av. Maringá x Rua Prof. Joaquim de Matos Barreto (Aterro Maior)", servico: "Irrigação", lat: -23.324934, lng: -51.176449 },
+                // ... add all entries from manutencao_jardins.pdf
+            ]
+        },
+        // Add other services as empty arrays for future modular expansion
+        { id: "limpeza_coleta", name: "Limpeza e Coletas Diversos e Volumosos", areas: [] },
+        { id: "manutencao_lagos", name: "Manutenção Lagos", areas: [] },
+        { id: "rocagem_lotes_particulares", name: "Roçagem em Lotes Particulares", areas: [] },
+        { id: "coleta_organicos", name: "Coleta Domiciliar Resíduos Orgânicos e Rejeitos", areas: [] },
+        { id: "coleta_reciclaveis", name: "Coleta Domiciliar Resíduos Recicláveis", areas: [] },
+        { id: "boa_praca", name: "Boa Praça", areas: [] },
+        { id: "poda", name: "Poda de Levante e Poda de Limpeza", areas: [] },
+        { id: "varricao", name: "Varrição", areas: [] },
+        { id: "manutencao_chafariz", name: "Manutenção em Chafariz", areas: [] },
+        { id: "pev", name: "Pontos de Entrega Voluntária (PEV's)", areas: [] },
+        { id: "bocas_de_lobo", name: "Limpeza e Desobstrução de Bocas de Lobo e Galerias Pluviais", areas: [] }
+    ],
+    teams: [
+        // Simulate team locations
+        { id: 1, service: "rocagem", type: "Giro Zero", lote: 1, status: "Idle", currentAreaId: null, location: { lat: -23.30, lng: -51.15 } },
+        { id: 2, service: "rocagem", type: "Acabamento", lote: 1, status: "Idle", currentAreaId: null, location: { lat: -23.30, lng: -51.15 } },
+        { id: 3, service: "rocagem", type: "Coleta", lote: 1, status: "Idle", currentAreaId: null, location: { lat: -23.30, lng: -51.15 } },
+        { id: 4, service: "rocagem", type: "Touceiras", lote: 1, status: "Idle", currentAreaId: null, location: { lat: -23.30, lng: -51.15 } },
+        { id: 5, service: "rocagem", type: "Giro Zero", lote: 2, status: "Idle", currentAreaId: null, location: { lat: -23.31, lng: -51.16 } },
+        { id: 6, service: "rocagem", type: "Acabamento", lote: 2, status: "Idle", currentAreaId: null, location: { lat: -23.31, lng: -51.16 } },
+        { id: 7, service: "jardins", type: "Manutenção", lote: null, status: "Idle", currentAreaId: null, location: { lat: -23.32, lng: -51.17 } },
+        { id: 8, service: "jardins", type: "Irrigação", lote: null, status: "Idle", currentAreaId: null, location: { lat: -23.32, lng: -51.17 } },
+    ]
+};
+
+
+5. Core Feature: Mowing Scheduling (Roçagem)
+This is the most critical logic.
+Create a function calculateMowingSchedule():
+This function must be called on app load and every time a mowing job's status is changed (e.g., to "Concluído").
+Get the productionRateLote1 and productionRateLote2 from APP_CONFIG.
+Create two "timelines," one for Lote 1 and one for Lote 2.
+let currentDateLote1 = new Date();
+let currentDateLote2 = new Date();
+Iterate through db.services.find(s => s.id === 'rocagem').areas that are status === 'Pendente', sorted by lote and then ordem.
+For each area (Lote 1):
+Assign area.scheduledDate = new Date(currentDateLote1);
+Calculate daysToComplete = Math.ceil(area.metragem_m2 / productionRateLote1);
+Add daysToComplete to currentDateLote1 (skip weekends if possible, or add a helper function addBusinessDays(date, days)).
+For each area (Lote 2):
+Do the same, using currentDateLote2 and productionRateLote2.
+Run this function on init to populate the scheduledDate for all pending areas.
+6. Map Visualization
+Initialize Leaflet Map: Centered on Londrina (e.g., [-23.31, -51.16], zoom 13). Use TileLayer with OpenStreetMap (check attribution requirements).
+Create Leaflet Layer Groups: Create one layer group for each filter in the sidebar (e.g., rocagemLote1Layer, jardinsLayer, teamsGiroZeroLayer).
+Render Mowing Areas (Polygons/Markers):
+Loop through the rocagem areas.
+If area.polygon exists, draw a L.polygon (add to the correct lote layer).
+If not, draw a L.marker at [area.lat, area.lng].
+Status-Based Styling (Crucial for the Mayor):
+Get today = new Date(). Set hours/minutes/seconds to 0 for proper date comparison.
+Define color codes (e.g., const statusColors = { executing: '#00FF00', today: '#FFFF00', ... };).
+if (area.status === 'Em Execução'): Style with statusColors.executing (consider adding a pulsing effect via CSS).
+else if (area.scheduledDate && area.scheduledDate.toDateString() === today.toDateString()): Style with statusColors.today ("Hoje").
+else if (area.scheduledDate && area.scheduledDate > today && area.scheduledDate <= addDays(today, 3)): Style with a lighter yellow ("Próximos 3 Dias").
+else if (area.scheduledDate && area.scheduledDate > addDays(today, 3) && area.scheduledDate <= addDays(today, 7)): Style with a light blue ("Próxima Semana").
+else if (area.status === 'Concluído' && area.history.length > 0 && area.history[area.history.length-1].date >= addDays(today, -7)): Style dark green ("Concluído Recente").
+else: Style gray ("Pendente Agendado" or "Concluído Antigo").
+Tooltip/Popup: On hover or click, show basic info (Endereço, Status, Data Agendada/Concluída).
+Render Garden Areas:
+Loop through jardins areas and place simple markers (e.g., flower icon using L.divIcon or a simple circle marker). Add to jardinsLayer.
+Render Teams:
+Loop through db.teams.
+Show them on the map with custom icons representing their type (Giro Zero, Acabamento, etc.). Use L.divIcon with appropriate symbols or colors. Add to the correct team type layer (e.g., teamsGiroZeroLayer).
+If team.status === 'Idle', set icon opacity to 0.5.
+7. Interactivity
+Area Modal (on click):
+When a user clicks any area marker or polygon (mowing or garden), open a custom modal overlay (create with HTML/Tailwind, do NOT use alert() or prompt()).
+The modal must display (in pt-br):
+Detalhes da Área (Endereço, Bairro, m², Tipo, Lote if applicable).
+Histórico de Serviço: A list (<ul>) generated from area.history, showing status and date.
+Próximo Serviço: For mowing (rocagem), show "Próxima roçagem estimada em: [formatted area.scheduledDate]".
+Ações: Buttons:
+"Iniciar Serviço": Sets area.status = 'Em Execução', updates map styling, closes modal.
+"Concluir Serviço": Sets area.status = 'Concluído', adds { date: new Date(), status: 'Concluído' } to area.history, triggers calculateMowingSchedule() to recalculate the timeline for that lote, updates map styling, closes modal.
+"Atribuir Equipe": A dropdown (<select>) listing available teams (db.teams where status === 'Idle'). On selection, update team.currentAreaId = area.id, team.status = 'Assigned', potentially move team marker on map, closes modal.
+Polygon Drawing:
+Use L.Control.Draw configured for polygons only. Add the draw control to the map.
+Listen for the draw:created event.
+When a polygon is created:
+Get the LatLngs: event.layer.getLatLngs()[0].
+Prompt the user (using a custom modal, not prompt()) to select which area this polygon belongs to (maybe show a dropdown populated from db.services.rocagem.areas where polygon === null).
+On confirmation, store the LatLng array in area.polygon for the selected area.
+Remove the old marker for that area and draw the new polygon on the map with the correct styling.
+Save the updated db (in a real app, this would be an API call; here, just update the in-memory object).
+(Helper function addDays(date, days) needed for date calculations)
+(Helper function addBusinessDays(date, days) might be needed if weekends should be skipped)
