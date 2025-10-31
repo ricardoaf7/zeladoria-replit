@@ -156,9 +156,30 @@ export function AreaInfoCard({ area, onClose, onUpdate }: AreaInfoCardProps) {
             <div className="flex items-start gap-3">
               <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Previsão</p>
-                <p className="text-sm font-medium" data-testid="text-previsao">
-                  {new Date(area.scheduledDate).toLocaleDateString('pt-BR')}
+                <p className="text-xs text-muted-foreground">Previsão Atual</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium" data-testid="text-previsao">
+                    {new Date(area.scheduledDate).toLocaleDateString('pt-BR')}
+                  </p>
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs" 
+                    data-testid={area.manualSchedule ? "badge-manual" : "badge-automatico"}
+                  >
+                    {area.manualSchedule ? "Manual" : "Automático"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {area.proximaPrevisao && (
+            <div className="flex items-start gap-3">
+              <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Próxima Previsão</p>
+                <p className="text-sm font-medium" data-testid="text-proxima-previsao">
+                  {new Date(area.proximaPrevisao).toLocaleDateString('pt-BR')}
                 </p>
               </div>
             </div>
