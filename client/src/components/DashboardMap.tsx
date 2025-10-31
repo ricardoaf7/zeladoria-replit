@@ -308,11 +308,28 @@ export function DashboardMap({
 
     teams.forEach((team) => {
       let layerGroup: L.LayerGroup | undefined;
+      let teamColor: string;
+      let teamLabel: string;
 
-      if (team.type === "Giro Zero") layerGroup = layerGroupsRef.current.teamsGiroZero;
-      else if (team.type === "Acabamento") layerGroup = layerGroupsRef.current.teamsAcabamento;
-      else if (team.type === "Coleta") layerGroup = layerGroupsRef.current.teamsColeta;
-      else if (team.type === "Touceiras") layerGroup = layerGroupsRef.current.teamsTouceiras;
+      if (team.type === "Giro Zero") {
+        layerGroup = layerGroupsRef.current.teamsGiroZero;
+        teamColor = "hsl(244, 80%, 65%)";
+        teamLabel = "GZ";
+      } else if (team.type === "Acabamento") {
+        layerGroup = layerGroupsRef.current.teamsAcabamento;
+        teamColor = "hsl(280, 70%, 65%)";
+        teamLabel = "AC";
+      } else if (team.type === "Coleta") {
+        layerGroup = layerGroupsRef.current.teamsColeta;
+        teamColor = "hsl(180, 70%, 55%)";
+        teamLabel = "CO";
+      } else if (team.type === "Touceiras" || team.type === "Capina") {
+        layerGroup = layerGroupsRef.current.teamsTouceiras;
+        teamColor = "hsl(140, 65%, 55%)";
+        teamLabel = team.type === "Capina" ? "CP" : "TC";
+      } else {
+        return;
+      }
 
       if (!layerGroup) return;
 
@@ -320,22 +337,22 @@ export function DashboardMap({
       const icon = L.divIcon({
         className: `team-marker-${team.type.toLowerCase().replace(/\s/g, "-")}`,
         html: `<div style="
-          background-color: #2563eb;
+          background-color: ${teamColor};
           color: white;
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: bold;
           border: 2px solid white;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+          box-shadow: 0 3px 8px rgba(0,0,0,0.5);
           opacity: ${opacity};
-        ">${team.type.charAt(0)}</div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        ">${teamLabel}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
       });
 
       const marker = L.marker([team.location.lat, team.location.lng], { icon });
@@ -369,30 +386,54 @@ export function DashboardMap({
 
       <div className="absolute bottom-4 left-4 z-[1000] bg-card/95 backdrop-blur-sm border border-card-border rounded-md p-3 shadow-lg" data-testid="map-legend">
         <h3 className="text-xs font-semibold mb-2 text-card-foreground">Legenda</h3>
-        <div className="space-y-1.5 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-map-executing animate-pulse"></div>
-            <span>Em Execução</span>
+        
+        <div className="space-y-3">
+          <div className="space-y-1.5 text-xs">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Status das Áreas</div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-map-executing animate-pulse"></div>
+              <span>Em Execução</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-map-today"></div>
+              <span>Hoje</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-map-next3days"></div>
+              <span>Próximos 3 Dias</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-map-nextWeek"></div>
+              <span>Próxima Semana</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-map-completedRecent"></div>
+              <span>Concluído Recente</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-map-pending"></div>
+              <span>Pendente</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-map-today"></div>
-            <span>Hoje</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-map-next3days"></div>
-            <span>Próximos 3 Dias</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-map-nextWeek"></div>
-            <span>Próxima Semana</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-map-completedRecent"></div>
-            <span>Concluído Recente</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-map-pending"></div>
-            <span>Pendente</span>
+
+          <div className="space-y-1.5 text-xs border-t border-card-border pt-2">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Tipos de Equipe</div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border border-white shadow-sm" style={{backgroundColor: "hsl(244, 80%, 65%)"}}>GZ</div>
+              <span>Giro Zero</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border border-white shadow-sm" style={{backgroundColor: "hsl(280, 70%, 65%)"}}>AC</div>
+              <span>Acabamento</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border border-white shadow-sm" style={{backgroundColor: "hsl(180, 70%, 55%)"}}>CO</div>
+              <span>Coleta</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border border-white shadow-sm" style={{backgroundColor: "hsl(140, 65%, 55%)"}}>CP</div>
+              <span>Capina</span>
+            </div>
           </div>
         </div>
       </div>
