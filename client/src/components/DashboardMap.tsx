@@ -23,6 +23,7 @@ interface DashboardMapProps {
     teamsTouceiras: boolean;
   };
   onAreaClick: (area: ServiceArea) => void;
+  mapRef?: React.MutableRefObject<L.Map | null>;
 }
 
 export function DashboardMap({
@@ -31,9 +32,11 @@ export function DashboardMap({
   teams,
   layerFilters,
   onAreaClick,
+  mapRef: externalMapRef,
 }: DashboardMapProps) {
   const { toast } = useToast();
-  const mapRef = useRef<L.Map | null>(null);
+  const internalMapRef = useRef<L.Map | null>(null);
+  const mapRef = externalMapRef || internalMapRef;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const layerGroupsRef = useRef<{
     [key: string]: L.LayerGroup;
@@ -56,6 +59,19 @@ export function DashboardMap({
         description: "O polígono foi salvo com sucesso.",
       });
       setPendingPolygon(null);
+    },
+  });
+
+  const updatePositionMutation = useMutation({
+    mutationFn: async ({ areaId, lat, lng }: { areaId: number; lat: number; lng: number }) => {
+      return await apiRequest("PATCH", `/api/areas/${areaId}/position`, { lat, lng });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/areas/rocagem"] });
+      toast({
+        title: "Posição Atualizada",
+        description: "A posição do marcador foi atualizada com sucesso.",
+      });
     },
   });
 
@@ -176,6 +192,18 @@ export function DashboardMap({
           }
         );
 
+        polygon.bindTooltip(
+          `<div class="font-sans text-xs">
+            <strong>${area.endereco}</strong><br/>
+            Roçagem de Áreas Públicas<br/>
+            ${area.scheduledDate ? `Previsão: ${new Date(area.scheduledDate).toLocaleDateString('pt-BR')}` : 'Sem previsão'}
+          </div>`,
+          {
+            sticky: true,
+            opacity: 0.9,
+          }
+        );
+
         polygon.bindPopup(
           `<div class="font-sans">
             <strong>${area.endereco}</strong><br/>
@@ -190,12 +218,27 @@ export function DashboardMap({
       } else {
         const icon = L.divIcon({
           className: `custom-marker ${isPulsing ? "animate-pulse" : ""}`,
-          html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+          html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: move;"></div>`,
           iconSize: [12, 12],
           iconAnchor: [6, 6],
         });
 
-        const marker = L.marker([area.lat, area.lng], { icon });
+        const marker = L.marker([area.lat, area.lng], { 
+          icon,
+          draggable: true,
+        });
+
+        marker.bindTooltip(
+          `<div class="font-sans text-xs">
+            <strong>${area.endereco}</strong><br/>
+            Roçagem de Áreas Públicas<br/>
+            ${area.scheduledDate ? `Previsão: ${new Date(area.scheduledDate).toLocaleDateString('pt-BR')}` : 'Sem previsão'}
+          </div>`,
+          {
+            offset: [0, -5],
+            opacity: 0.9,
+          }
+        );
 
         marker.bindPopup(
           `<div class="font-sans">
@@ -207,6 +250,16 @@ export function DashboardMap({
         );
 
         marker.on("click", () => onAreaClick(area));
+        
+        marker.on("dragend", (e: any) => {
+          const newLatLng = e.target.getLatLng();
+          updatePositionMutation.mutate({
+            areaId: area.id,
+            lat: newLatLng.lat,
+            lng: newLatLng.lng,
+          });
+        });
+
         marker.addTo(layerGroup);
       }
     });
@@ -297,6 +350,16 @@ export function DashboardMap({
 
       marker.addTo(layerGroup);
     });
+
+    if (layerGroupsRef.current.rocagemLote1 && typeof layerGroupsRef.current.rocagemLote1.bringToFront === 'function') {
+      layerGroupsRef.current.rocagemLote1.bringToFront();
+    }
+    if (layerGroupsRef.current.rocagemLote2 && typeof layerGroupsRef.current.rocagemLote2.bringToFront === 'function') {
+      layerGroupsRef.current.rocagemLote2.bringToFront();
+    }
+    if (layerGroupsRef.current.jardins && typeof layerGroupsRef.current.jardins.bringToFront === 'function') {
+      layerGroupsRef.current.jardins.bringToFront();
+    }
   }, [teams]);
 
   return (

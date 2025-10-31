@@ -1,274 +1,275 @@
-import { Settings } from "lucide-react";
+import { 
+  MapPin, 
+  Layers, 
+  Leaf, 
+  Flower2, 
+  TreeDeciduous, 
+  Waves, 
+  Paintbrush, 
+  Scissors, 
+  Droplets,
+  Trash2,
+  Recycle,
+  Sparkles,
+  Wind,
+  Package
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { AreaInfoCard } from "./AreaInfoCard";
 import { Separator } from "@/components/ui/separator";
-import { useState, useEffect } from "react";
-import type { AppConfig } from "@shared/schema";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import type { ServiceArea } from "@shared/schema";
 
 interface AppSidebarProps {
-  layerFilters: {
-    rocagemLote1: boolean;
-    rocagemLote2: boolean;
-    jardins: boolean;
-    teamsGiroZero: boolean;
-    teamsAcabamento: boolean;
-    teamsColeta: boolean;
-    teamsTouceiras: boolean;
-  };
-  onLayerFilterChange: (filters: any) => void;
-  config?: AppConfig;
+  selectedService?: string;
+  onServiceSelect?: (service: string) => void;
+  selectedArea?: ServiceArea | null;
+  onAreaClose?: () => void;
+  onAreaUpdate?: (area: ServiceArea) => void;
 }
 
 export function AppSidebar({
-  layerFilters,
-  onLayerFilterChange,
-  config,
+  selectedService,
+  onServiceSelect,
+  selectedArea,
+  onAreaClose,
+  onAreaUpdate,
 }: AppSidebarProps) {
-  const { toast } = useToast();
-  const [lote1Rate, setLote1Rate] = useState(25000);
-  const [lote2Rate, setLote2Rate] = useState(20000);
-
-  useEffect(() => {
-    if (config) {
-      setLote1Rate(config.mowingProductionRate.lote1);
-      setLote2Rate(config.mowingProductionRate.lote2);
+  const handleServiceClick = (service: string) => {
+    if (onServiceSelect) {
+      onServiceSelect(service);
     }
-  }, [config]);
-
-  const updateConfigMutation = useMutation({
-    mutationFn: async (newConfig: { mowingProductionRate: { lote1: number; lote2: number } }) => {
-      return await apiRequest("PATCH", "/api/config", newConfig);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/config"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/areas/rocagem"] });
-      toast({
-        title: "Configuração Atualizada",
-        description: "As taxas de produção foram atualizadas e o agendamento recalculado.",
-      });
-    },
-  });
-
-  const handleUpdateRates = () => {
-    updateConfigMutation.mutate({
-      mowingProductionRate: {
-        lote1: lote1Rate,
-        lote2: lote2Rate,
-      },
-    });
-  };
-
-  const toggleFilter = (key: string) => {
-    onLayerFilterChange({
-      ...layerFilters,
-      [key]: !layerFilters[key as keyof typeof layerFilters],
-    });
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="px-6 py-4">
-          <h1 className="text-xl font-semibold text-sidebar-foreground">
-            CMTU-LD
-          </h1>
-          <p className="text-sm text-muted-foreground">Dashboard Operacional</p>
+    <Sidebar className="border-r-0">
+      <SidebarHeader className="p-6 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80">
+            <MapPin className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-foreground">CMTU Dashboard</h1>
+            <p className="text-xs text-muted-foreground">Operações em Tempo Real</p>
+          </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Filtros de Camadas</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <div className="space-y-4 px-4">
-              <div className="space-y-2">
-                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Roçagem
-                </h3>
-                <div className="space-y-2 pl-2">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="rocagemLote1"
-                      checked={layerFilters.rocagemLote1}
-                      onCheckedChange={() => toggleFilter("rocagemLote1")}
-                      data-testid="checkbox-rocagem-lote1"
-                    />
-                    <Label
-                      htmlFor="rocagemLote1"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Roçagem (Lote 1)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="rocagemLote2"
-                      checked={layerFilters.rocagemLote2}
-                      onCheckedChange={() => toggleFilter("rocagemLote2")}
-                      data-testid="checkbox-rocagem-lote2"
-                    />
-                    <Label
-                      htmlFor="rocagemLote2"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Roçagem (Lote 2)
-                    </Label>
-                  </div>
-                </div>
-              </div>
+      <SidebarContent className="px-4">
+        {selectedArea && onAreaClose ? (
+          <div className="mb-4">
+            <AreaInfoCard 
+              area={selectedArea} 
+              onClose={onAreaClose}
+              onUpdate={onAreaUpdate}
+            />
+            <Separator className="my-4" />
+          </div>
+        ) : null}
+        
+        <div className="mb-4">
+          <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground">
+            <Layers className="h-4 w-4" />
+            <span>Serviços</span>
+          </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Outros Serviços
-                </h3>
-                <div className="space-y-2 pl-2">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="jardins"
-                      checked={layerFilters.jardins}
-                      onCheckedChange={() => toggleFilter("jardins")}
-                      data-testid="checkbox-jardins"
-                    />
-                    <Label
-                      htmlFor="jardins"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Manutenção de Jardins
-                    </Label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Equipes
-                </h3>
-                <div className="space-y-2 pl-2">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="teamsGiroZero"
-                      checked={layerFilters.teamsGiroZero}
-                      onCheckedChange={() => toggleFilter("teamsGiroZero")}
-                      data-testid="checkbox-teams-giro-zero"
-                    />
-                    <Label
-                      htmlFor="teamsGiroZero"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Equipes: Giro Zero
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="teamsAcabamento"
-                      checked={layerFilters.teamsAcabamento}
-                      onCheckedChange={() => toggleFilter("teamsAcabamento")}
-                      data-testid="checkbox-teams-acabamento"
-                    />
-                    <Label
-                      htmlFor="teamsAcabamento"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Equipes: Acabamento
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="teamsColeta"
-                      checked={layerFilters.teamsColeta}
-                      onCheckedChange={() => toggleFilter("teamsColeta")}
-                      data-testid="checkbox-teams-coleta"
-                    />
-                    <Label
-                      htmlFor="teamsColeta"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Equipes: Coleta
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="teamsTouceiras"
-                      checked={layerFilters.teamsTouceiras}
-                      onCheckedChange={() => toggleFilter("teamsTouceiras")}
-                      data-testid="checkbox-teams-touceiras"
-                    />
-                    <Label
-                      htmlFor="teamsTouceiras"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Equipes: Touceiras
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <Separator className="my-4" />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              <span>Configuração de Produção</span>
-            </div>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <div className="space-y-4 px-4">
-              <div className="space-y-2">
-                <Label htmlFor="lote1Rate" className="text-sm">
-                  Produção Média Lote 1 (m²/dia)
-                </Label>
-                <Input
-                  id="lote1Rate"
-                  type="number"
-                  value={lote1Rate}
-                  onChange={(e) => setLote1Rate(Number(e.target.value))}
-                  className="font-mono"
-                  data-testid="input-lote1-rate"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="lote2Rate" className="text-sm">
-                  Produção Média Lote 2 (m²/dia)
-                </Label>
-                <Input
-                  id="lote2Rate"
-                  type="number"
-                  value={lote2Rate}
-                  onChange={(e) => setLote2Rate(Number(e.target.value))}
-                  className="font-mono"
-                  data-testid="input-lote2-rate"
-                />
-              </div>
-
-              <Button
-                onClick={handleUpdateRates}
-                className="w-full"
-                disabled={updateConfigMutation.isPending}
-                data-testid="button-update-rates"
+          <Accordion type="single" collapsible defaultValue="limpeza" className="space-y-2">
+            <AccordionItem value="limpeza" className="border-0">
+              <AccordionTrigger 
+                className="rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 px-4 py-3 hover:no-underline data-[state=open]:bg-emerald-600/30 border border-emerald-600/40"
+                data-testid="accordion-limpeza-urbana"
               >
-                {updateConfigMutation.isPending ? "Atualizando..." : "Atualizar Taxas"}
-              </Button>
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                <div className="flex items-center gap-3">
+                  <Leaf className="h-5 w-5 text-emerald-400" />
+                  <span className="font-semibold text-sm text-foreground">LIMPEZA URBANA</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-2 pt-2 px-2">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => handleServiceClick('rocagem')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'rocagem' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-rocagem"
+                  >
+                    <Scissors className="h-4 w-4 text-emerald-400" />
+                    <span>Roçagem Áreas Públicas</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('jardins')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'jardins' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-jardins"
+                  >
+                    <Flower2 className="h-4 w-4 text-emerald-400" />
+                    <span>Jardins</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('boa-praca')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'boa-praca' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-boa-praca"
+                  >
+                    <MapPin className="h-4 w-4 text-emerald-400" />
+                    <span>Boa Praça</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('manutencao-lagos')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'manutencao-lagos' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-manutencao-lagos"
+                  >
+                    <Waves className="h-4 w-4 text-emerald-400" />
+                    <span>Manutenção Lagos</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('varricao')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'varricao' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-varricao"
+                  >
+                    <Paintbrush className="h-4 w-4 text-emerald-400" />
+                    <span>Varrição</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('podas')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'podas' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-podas"
+                  >
+                    <TreeDeciduous className="h-4 w-4 text-emerald-400" />
+                    <span>Podas</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('chafariz')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'chafariz' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-chafariz"
+                  >
+                    <Droplets className="h-4 w-4 text-emerald-400" />
+                    <span>Chafariz</span>
+                  </button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="residuos" className="border-0">
+              <AccordionTrigger 
+                className="rounded-lg bg-blue-600/20 hover:bg-blue-600/30 px-4 py-3 hover:no-underline data-[state=open]:bg-blue-600/30 border border-blue-600/40"
+                data-testid="accordion-residuos"
+              >
+                <div className="flex items-center gap-3">
+                  <Recycle className="h-5 w-5 text-blue-400" />
+                  <span className="font-semibold text-sm text-foreground">RESÍDUOS</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-2 pt-2 px-2">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => handleServiceClick('coleta-organicos')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'coleta-organicos' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-coleta-organicos"
+                  >
+                    <Trash2 className="h-4 w-4 text-blue-400" />
+                    <span>Coleta Orgânicos e Rejeitos</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('coleta-reciclaveis')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'coleta-reciclaveis' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-coleta-reciclaveis"
+                  >
+                    <Recycle className="h-4 w-4 text-blue-400" />
+                    <span>Coleta Recicláveis</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('coleta-especiais')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'coleta-especiais' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-coleta-especiais"
+                  >
+                    <Sparkles className="h-4 w-4 text-blue-400" />
+                    <span>Coleta e Limpeza Especiais</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('limpeza-bocas')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'limpeza-bocas' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-limpeza-bocas"
+                  >
+                    <Wind className="h-4 w-4 text-blue-400" />
+                    <span>Limpeza de Bocas de Lobo</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleServiceClick('pevs')}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
+                      selectedService === 'pevs' 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="service-pevs"
+                  >
+                    <Package className="h-4 w-4 text-blue-400" />
+                    <span>PEV's</span>
+                  </button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
       </SidebarContent>
     </Sidebar>
   );

@@ -139,6 +139,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/areas/:id/position", async (req, res) => {
+    try {
+      const areaId = parseInt(req.params.id);
+      const positionSchema = z.object({
+        lat: z.number(),
+        lng: z.number(),
+      });
+
+      const { lat, lng } = positionSchema.parse(req.body);
+      const updatedArea = await storage.updateAreaPosition(areaId, lat, lng);
+
+      if (!updatedArea) {
+        res.status(404).json({ error: "Area not found" });
+        return;
+      }
+
+      res.json(updatedArea);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid position data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to update position" });
+      }
+    }
+  });
+
+  app.patch("/api/areas/:id", async (req, res) => {
+    try {
+      const areaId = parseInt(req.params.id);
+      const updateSchema = z.object({
+        endereco: z.string().optional(),
+        bairro: z.string().optional(),
+        metragem_m2: z.number().optional(),
+        lote: z.number().optional(),
+      });
+
+      const data = updateSchema.parse(req.body);
+      const updatedArea = await storage.updateArea(areaId, data);
+
+      if (!updatedArea) {
+        res.status(404).json({ error: "Area not found" });
+        return;
+      }
+
+      res.json(updatedArea);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid area data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to update area" });
+      }
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

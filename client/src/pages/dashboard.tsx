@@ -1,22 +1,15 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DashboardMap } from "@/components/DashboardMap";
 import { AppSidebar } from "@/components/AppSidebar";
-import { AreaDetailsModal } from "@/components/AreaDetailsModal";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 import type { ServiceArea, Team, AppConfig } from "@shared/schema";
+import L from "leaflet";
 
 export default function Dashboard() {
   const [selectedArea, setSelectedArea] = useState<ServiceArea | null>(null);
-  const [layerFilters, setLayerFilters] = useState({
-    rocagemLote1: true,
-    rocagemLote2: true,
-    jardins: true,
-    teamsGiroZero: true,
-    teamsAcabamento: true,
-    teamsColeta: true,
-    teamsTouceiras: true,
-  });
+  const [selectedService, setSelectedService] = useState<string>('rocagem');
+  const mapRef = useRef<L.Map | null>(null);
 
   const { data: rocagemAreas = [] } = useQuery<ServiceArea[]>({
     queryKey: ["/api/areas/rocagem"],
@@ -34,18 +27,42 @@ export default function Dashboard() {
     queryKey: ["/api/config"],
   });
 
+  useEffect(() => {
+    if (selectedArea && mapRef.current) {
+      const lat = selectedArea.lat;
+      const lng = selectedArea.lng;
+      
+      if (lat && lng) {
+        mapRef.current.panTo([lat, lng], { animate: true });
+        if (selectedArea.polygon) {
+          mapRef.current.setZoom(16);
+        }
+      }
+    }
+  }, [selectedArea]);
+
   const style = {
-    "--sidebar-width": "20rem",
+    "--sidebar-width": "22rem",
     "--sidebar-width-icon": "4rem",
+  };
+
+  const handleAreaClick = (area: ServiceArea) => {
+    setSelectedArea(area);
+  };
+
+  const handleAreaUpdate = (updatedArea: ServiceArea) => {
+    setSelectedArea(updatedArea);
   };
 
   return (
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <AppSidebar
-          layerFilters={layerFilters}
-          onLayerFilterChange={setLayerFilters}
-          config={config}
+          selectedService={selectedService}
+          onServiceSelect={setSelectedService}
+          selectedArea={selectedArea}
+          onAreaClose={() => setSelectedArea(null)}
+          onAreaUpdate={handleAreaUpdate}
         />
         
         <SidebarInset className="flex-1 overflow-hidden">
@@ -57,19 +74,20 @@ export default function Dashboard() {
               rocagemAreas={rocagemAreas}
               jardinsAreas={jardinsAreas}
               teams={teams}
-              layerFilters={layerFilters}
-              onAreaClick={setSelectedArea}
+              layerFilters={{
+                rocagemLote1: selectedService === 'rocagem',
+                rocagemLote2: selectedService === 'rocagem',
+                jardins: selectedService === 'jardins',
+                teamsGiroZero: true,
+                teamsAcabamento: true,
+                teamsColeta: true,
+                teamsTouceiras: true,
+              }}
+              onAreaClick={handleAreaClick}
+              mapRef={mapRef}
             />
           </main>
         </SidebarInset>
-
-        {selectedArea && (
-          <AreaDetailsModal
-            area={selectedArea}
-            teams={teams}
-            onClose={() => setSelectedArea(null)}
-          />
-        )}
       </div>
     </SidebarProvider>
   );

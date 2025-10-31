@@ -7,6 +7,8 @@ export interface IStorage {
   updateAreaStatus(id: number, status: string): Promise<ServiceArea | undefined>;
   updateAreaSchedule(id: number, scheduledDate: string): Promise<ServiceArea | undefined>;
   updateAreaPolygon(id: number, polygon: Array<{ lat: number; lng: number }>): Promise<ServiceArea | undefined>;
+  updateAreaPosition(id: number, lat: number, lng: number): Promise<ServiceArea | undefined>;
+  updateArea(id: number, data: Partial<ServiceArea>): Promise<ServiceArea | undefined>;
   
   // Teams
   getAllTeams(): Promise<Team[]>;
@@ -207,6 +209,23 @@ export class MemStorage implements IStorage {
     if (!area) return undefined;
 
     area.polygon = polygon;
+    return area;
+  }
+
+  async updateAreaPosition(id: number, lat: number, lng: number): Promise<ServiceArea | undefined> {
+    const area = await this.getAreaById(id);
+    if (!area) return undefined;
+
+    area.lat = lat;
+    area.lng = lng;
+    return area;
+  }
+
+  async updateArea(id: number, data: Partial<ServiceArea>): Promise<ServiceArea | undefined> {
+    const area = await this.getAreaById(id);
+    if (!area) return undefined;
+
+    Object.assign(area, data);
     return area;
   }
 
