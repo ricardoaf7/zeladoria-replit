@@ -15,6 +15,7 @@ export const serviceAreas = pgTable("service_areas", {
   polygon: jsonb("polygon"),
   scheduledDate: text("scheduled_date"),
   proximaPrevisao: text("proxima_previsao"),
+  ultimaRocagem: text("ultima_rocagem"),
   manualSchedule: boolean("manual_schedule").default(false),
   daysToComplete: integer("days_to_complete"),
   servico: text("servico"),

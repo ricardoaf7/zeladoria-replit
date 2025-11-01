@@ -229,6 +229,7 @@ export class DbStorage implements IStorage {
       polygon: dbArea.polygon as any,
       scheduledDate: dbArea.scheduledDate,
       proximaPrevisao: dbArea.proximaPrevisao,
+      ultimaRocagem: dbArea.ultimaRocagem,
       manualSchedule: dbArea.manualSchedule ?? false,
       daysToComplete: dbArea.daysToComplete,
       servico: dbArea.servico,

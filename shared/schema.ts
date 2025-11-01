@@ -23,6 +23,7 @@ export const serviceAreaSchema = z.object({
   })).nullable().default(null),
   scheduledDate: z.string().nullable().default(null),
   proximaPrevisao: z.string().nullable().optional(),
+  ultimaRocagem: z.string().nullable().optional(),
   manualSchedule: z.boolean().optional().default(false),
   daysToComplete: z.number().optional(),
   servico: z.string().optional(),
