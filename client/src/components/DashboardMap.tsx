@@ -228,9 +228,19 @@ export function DashboardMap({
       } else {
         const icon = L.divIcon({
           className: `custom-marker ${isPulsing ? "animate-pulse" : ""}`,
-          html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: move; opacity: ${opacity};"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6],
+          html: `<div style="
+            background: ${isSelected ? 'rgba(147, 51, 234, 0.3)' : 'rgba(52, 211, 153, 0.25)'};
+            width: 16px; 
+            height: 16px; 
+            border-radius: 50%; 
+            border: 3px solid ${isSelected ? '#9333ea' : '#047857'};
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.5);
+            cursor: move; 
+            opacity: ${opacity};
+            transition: all 0.2s ease;
+          "></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
         });
 
         const marker = L.marker([area.lat, area.lng], { 
