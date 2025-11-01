@@ -16,7 +16,7 @@ import {
   CheckSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import operacoesLogo from "@assets/Operacoes_Logo_Negativo_1762017107891.png";
+import operacoesLogo from "@assets/Operacoes_Logo_Positivo_1762027620245.png";
 import {
   Sidebar,
   SidebarContent,
@@ -132,8 +132,8 @@ export function AppSidebar({
                 data-testid="accordion-limpeza-urbana"
               >
                 <div className="flex items-center gap-3">
-                  <Leaf className="h-5 w-5 text-emerald-400" />
-                  <span className="font-semibold text-sm text-white">LIMPEZA URBANA</span>
+                  <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="font-semibold text-sm text-emerald-700 dark:text-emerald-300">LIMPEZA URBANA</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-2 pt-2 px-2">
@@ -143,11 +143,11 @@ export function AppSidebar({
                     className={`w-full flex items-center justify-start gap-3 px-4 py-2.5 rounded-md text-sm text-left transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'rocagem' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-rocagem"
                   >
-                    <Scissors className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                    <Scissors className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                     <span className="text-left">Capina e Roçagem de Áreas Públicas</span>
                   </button>
                   
@@ -196,11 +196,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'jardins' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-jardins"
                   >
-                    <Flower2 className="h-4 w-4 text-emerald-400" />
+                    <Flower2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Jardins</span>
                   </button>
 
@@ -209,11 +209,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'boa-praca' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-boa-praca"
                   >
-                    <MapPin className="h-4 w-4 text-emerald-400" />
+                    <MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Boa Praça</span>
                   </button>
 
@@ -222,11 +222,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'manutencao-lagos' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-manutencao-lagos"
                   >
-                    <Waves className="h-4 w-4 text-emerald-400" />
+                    <Waves className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Manutenção Lagos</span>
                   </button>
 
@@ -235,11 +235,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'varricao' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-varricao"
                   >
-                    <Paintbrush className="h-4 w-4 text-emerald-400" />
+                    <Paintbrush className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Varrição</span>
                   </button>
 
@@ -248,11 +248,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'podas' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-podas"
                   >
-                    <TreeDeciduous className="h-4 w-4 text-emerald-400" />
+                    <TreeDeciduous className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Podas</span>
                   </button>
 
@@ -261,11 +261,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'chafariz' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-chafariz"
                   >
-                    <Droplets className="h-4 w-4 text-emerald-400" />
+                    <Droplets className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Chafariz</span>
                   </button>
                 </div>
@@ -278,8 +278,8 @@ export function AppSidebar({
                 data-testid="accordion-residuos"
               >
                 <div className="flex items-center gap-3">
-                  <Recycle className="h-5 w-5 text-blue-400" />
-                  <span className="font-semibold text-sm text-white">RESÍDUOS</span>
+                  <Recycle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <span className="font-semibold text-sm text-blue-700 dark:text-blue-300">RESÍDUOS</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-2 pt-2 px-2">
@@ -289,11 +289,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'coleta-organicos' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-coleta-organicos"
                   >
-                    <Trash2 className="h-4 w-4 text-blue-400" />
+                    <Trash2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span>Coleta Orgânicos e Rejeitos</span>
                   </button>
 
@@ -302,11 +302,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'coleta-reciclaveis' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-coleta-reciclaveis"
                   >
-                    <Recycle className="h-4 w-4 text-blue-400" />
+                    <Recycle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span>Coleta Recicláveis</span>
                   </button>
 
@@ -315,11 +315,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'coleta-especiais' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-coleta-especiais"
                   >
-                    <Sparkles className="h-4 w-4 text-blue-400" />
+                    <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span>Coleta e Limpeza Especiais</span>
                   </button>
 
@@ -328,11 +328,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'limpeza-bocas' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-limpeza-bocas"
                   >
-                    <Wind className="h-4 w-4 text-blue-400" />
+                    <Wind className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span>Limpeza de Bocas de Lobo</span>
                   </button>
 
@@ -341,11 +341,11 @@ export function AppSidebar({
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 ${
                       selectedService === 'pevs' 
                         ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-gray-300 hover:text-white'
+                        : 'text-foreground/80 hover:text-foreground'
                     }`}
                     data-testid="service-pevs"
                   >
-                    <Package className="h-4 w-4 text-blue-400" />
+                    <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span>PEV's</span>
                   </button>
                 </div>
