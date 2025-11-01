@@ -111,22 +111,9 @@ export function AppSidebar({
         ) : null}
         
         <div className="mb-4">
-          <div className="flex items-center justify-between px-3 py-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <Layers className="h-4 w-4" />
-              <span>Serviços</span>
-            </div>
-            {selectedService === 'rocagem' && onToggleSelectionMode && !isRegistrationMode && (
-              <Button
-                variant={selectionMode ? "default" : "outline"}
-                size="sm"
-                onClick={onToggleSelectionMode}
-                data-testid="button-toggle-selection"
-              >
-                <CheckSquare className="h-4 w-4 mr-1.5" />
-                {selectionMode ? "Selecionando" : "Selecionar"}
-              </Button>
-            )}
+          <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground">
+            <Layers className="h-4 w-4" />
+            <span>Serviços</span>
           </div>
 
           <Accordion type="single" collapsible className="space-y-2">
@@ -165,6 +152,24 @@ export function AppSidebar({
                         className="overflow-hidden"
                       >
                         <div className="mt-3 space-y-3 pl-2">
+                          {onToggleSelectionMode && !isRegistrationMode && (
+                            <>
+                              <div className="px-2">
+                                <Button
+                                  variant={selectionMode ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={onToggleSelectionMode}
+                                  data-testid="button-toggle-selection"
+                                  className="w-full"
+                                >
+                                  <CheckSquare className="h-4 w-4 mr-1.5" />
+                                  {selectionMode ? "Selecionando" : "Selecionar"}
+                                </Button>
+                              </div>
+                              <Separator className="my-3" />
+                            </>
+                          )}
+
                           {filters && onFilterChange && (
                             <>
                               <FilterPanel
