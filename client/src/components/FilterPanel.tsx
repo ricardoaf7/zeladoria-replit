@@ -29,6 +29,7 @@ interface FilterPanelProps {
 
 export function FilterPanel({ areas, filters, onFilterChange, filteredCount }: FilterPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const bairros = useMemo(() => {
     const unique = new Set(areas.map(a => a.bairro).filter(Boolean) as string[]);
@@ -39,6 +40,24 @@ export function FilterPanel({ areas, filters, onFilterChange, filteredCount }: F
     const unique = new Set(areas.map(a => a.tipo).filter(Boolean) as string[]);
     return Array.from(unique).sort();
   }, [areas]);
+
+  const suggestions = useMemo(() => {
+    if (!filters.search || filters.search.length < 2) return [];
+    
+    const searchLower = filters.search.toLowerCase();
+    const matches = new Set<string>();
+    
+    areas.forEach(area => {
+      if (area.endereco?.toLowerCase().includes(searchLower)) {
+        matches.add(area.endereco);
+      }
+      if (area.bairro?.toLowerCase().includes(searchLower)) {
+        matches.add(area.bairro);
+      }
+    });
+    
+    return Array.from(matches).slice(0, 8);
+  }, [areas, filters.search]);
 
   const hasActiveFilters = filters.search || 
     (filters.bairro && filters.bairro !== "all") || 
@@ -98,10 +117,82 @@ export function FilterPanel({ areas, filters, onFilterChange, filteredCount }: F
               <Input
                 placeholder="Endereço ou bairro..."
                 value={filters.search}
-                onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+                onChange={(e) => {
+                  onFilterChange({ ...filters, search: e.target.value });
+                  if (e.target.value.length >= 2) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onFocus={() => {
+                  if (filters.search.length >= 2) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onBlur={() => setShowSuggestions(false)}
                 className="pl-9 text-foreground"
                 data-testid="input-filter-search"
               />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-popover border border-popover-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="w-full px-3 py-2 text-left text-sm hover-elevate active-elevate-2 text-foreground border-b border-border last:border-0"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        onFilterChange({ ...filters, search: suggestion });
+                        setShowSuggestions(false);
+                      }}
+                      data-testid={`suggestion-${index}`}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Status Rápido</label>
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                variant={filters.status === "Pendente" ? "default" : "outline"}
+                className="cursor-pointer hover-elevate active-elevate-2"
+                onClick={() => {
+                  const newStatus = filters.status === "Pendente" ? "all" : "Pendente";
+                  onFilterChange({ ...filters, status: newStatus });
+                }}
+                data-testid="chip-status-pendente"
+              >
+                <div className="w-2 h-2 rounded-full bg-gray-400 mr-1.5" />
+                Pendente
+              </Badge>
+              <Badge
+                variant={filters.status === "Em Execução" ? "default" : "outline"}
+                className="cursor-pointer hover-elevate active-elevate-2"
+                onClick={() => {
+                  const newStatus = filters.status === "Em Execução" ? "all" : "Em Execução";
+                  onFilterChange({ ...filters, status: newStatus });
+                }}
+                data-testid="chip-status-em-execucao"
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5" />
+                Em Execução
+              </Badge>
+              <Badge
+                variant={filters.status === "Concluído" ? "default" : "outline"}
+                className="cursor-pointer hover-elevate active-elevate-2"
+                onClick={() => {
+                  const newStatus = filters.status === "Concluído" ? "all" : "Concluído";
+                  onFilterChange({ ...filters, status: newStatus });
+                }}
+                data-testid="chip-status-concluido"
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-700 mr-1.5" />
+                Concluído
+              </Badge>
             </div>
           </div>
 
@@ -122,24 +213,24 @@ export function FilterPanel({ areas, filters, onFilterChange, filteredCount }: F
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">Status</label>
-              <Select
-                value={filters.status}
-                onValueChange={(value) => onFilterChange({ ...filters, status: value })}
-              >
-                <SelectTrigger data-testid="select-filter-status">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="Pendente">Pendente</SelectItem>
-                  <SelectItem value="Em Execução">Em Execução</SelectItem>
-                  <SelectItem value="Concluído">Concluído</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Status (Detalhado)</label>
+            <Select
+              value={filters.status}
+              onValueChange={(value) => onFilterChange({ ...filters, status: value })}
+            >
+              <SelectTrigger data-testid="select-filter-status">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="Pendente">Pendente</SelectItem>
+                <SelectItem value="Em Execução">Em Execução</SelectItem>
+                <SelectItem value="Concluído">Concluído</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
