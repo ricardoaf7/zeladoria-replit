@@ -77,11 +77,7 @@ export function AppSidebar({
   
   const handleServiceClick = (service: string) => {
     if (onServiceSelect) {
-      if (selectedService === service) {
-        onServiceSelect('');
-      } else {
-        onServiceSelect(service);
-      }
+      onServiceSelect(service);
     }
   };
 
@@ -145,6 +141,7 @@ export function AppSidebar({
                   <AnimatePresence>
                     {selectedService === 'rocagem' && (
                       <motion.div 
+                        key="rocagem-tools"
                         initial={{ opacity: 0, height: 0, y: -10 }}
                         animate={{ opacity: 1, height: "auto", y: 0 }}
                         exit={{ opacity: 0, height: 0, y: -10 }}

@@ -8,7 +8,22 @@ The application combines interactive mapping with service area management, autom
 
 ## Recent Changes (November 1, 2025)
 
-### Daily Mowing Registration System (Latest)
+### UI/UX Organization Improvements (Latest)
+- **Selection Button Relocation**: Moved "Selecionar" button from global Services header into Capina e Roçagem tools panel
+  - Button now appears as first item in tools panel (before Filtros, Registro Diário, and Legenda)
+  - Better contextual organization - all service-specific tools grouped together
+  - Full-width button styling for better touch targets on mobile
+- **Service Selection Logic Fix**: Removed toggle behavior from service selection
+  - Clicking a service item always selects it (no longer deselects if already selected)
+  - Prevents accidentally hiding tools panel when clicking current service
+  - Maintains consistent UI state for better user experience
+- **Theme-Adaptive Logo System**: 
+  - Positive version (light mode) with blue/green CMTU colors
+  - Negative version (dark mode) with white text for better contrast
+  - Automatic switching based on active theme
+- **Accordion Behavior**: All service submenus (LIMPEZA URBANA, RESÍDUOS) start collapsed for cleaner initial state
+
+### Daily Mowing Registration System
 - **Real Data Import**: Successfully imported all 1125 real service areas from Google Sheets into PostgreSQL database
 - **Holiday System**: Comprehensive Brazilian holiday calendar including:
   - National holidays: Ano Novo, Carnaval (mobile), Sexta-feira Santa (mobile), Tiradentes, Trabalhador, Corpus Christi (mobile), Independência, Nossa Senhora Aparecida, Finados, República, Natal
