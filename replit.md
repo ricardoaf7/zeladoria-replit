@@ -8,6 +8,30 @@ The application combines interactive mapping with service area management, autom
 
 ## Recent Changes (November 1, 2025)
 
+### Daily Mowing Registration System (Latest)
+- **Real Data Import**: Successfully imported all 1125 real service areas from Google Sheets into PostgreSQL database
+- **Holiday System**: Comprehensive Brazilian holiday calendar including:
+  - National holidays: Ano Novo, Carnaval (mobile), Sexta-feira Santa (mobile), Tiradentes, Trabalhador, Corpus Christi (mobile), Independência, Nossa Senhora Aparecida, Finados, República, Natal
+  - Londrina municipal holiday: December 10 (anniversary)
+  - Business days calculator that skips both weekends and holidays
+- **Automatic Prediction Algorithm**: Implemented in `shared/schedulingAlgorithm.ts` with:
+  - Lote-specific production rates (110,000 m²/day for lote 1, 80,000 m²/day for lote 2)
+  - Holiday-aware business days calculation
+  - Automatic recalculation of all areas when any area is completed
+  - Respects manual scheduling flags
+- **Daily Registration Interface**: 
+  - DailyRegistrationPanel component with "Iniciar Registro" button
+  - Map-based area selection with purple visual feedback
+  - Date input for registration
+  - Batch registration of multiple areas at once
+  - Automatic history tracking and forecast recalculation
+- **Enhanced Area Information**:
+  - Added `ultimaRocagem` field to track last mowing date
+  - Complete mowing history display in AreaInfoCard
+  - Shows next forecast (`proximaPrevisao`) calculated with business days
+- **Database Schema Updates**: Added `ultimaRocagem` field to service_areas table
+- **API Endpoints**: New POST /api/areas/register-daily endpoint for batch mowing registration with automatic recalculation
+
 ### Production Deployment Ready
 - **Dual Storage Architecture**: Application now supports both in-memory (development) and PostgreSQL (production) storage via environment variable detection
 - **DbStorage Implementation**: Full Drizzle ORM integration with Neon/Supabase PostgreSQL including all IStorage methods
