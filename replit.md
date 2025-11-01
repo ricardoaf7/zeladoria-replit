@@ -6,7 +6,18 @@ This is a full-stack web application serving as an operational dashboard for CMT
 
 The application combines interactive mapping with service area management, automated scheduling algorithms, and team assignment capabilities. All user-facing content is in Brazilian Portuguese (pt-BR).
 
-## Recent Changes (October 31, 2025)
+## Recent Changes (November 1, 2025)
+
+### Production Deployment Ready
+- **Dual Storage Architecture**: Application now supports both in-memory (development) and PostgreSQL (production) storage via environment variable detection
+- **DbStorage Implementation**: Full Drizzle ORM integration with Neon/Supabase PostgreSQL including all IStorage methods
+- **Database Schema**: Created `db/schema.ts` with proper table definitions (service_areas, teams, app_config) using JSONB for complex fields
+- **Migration System**: Drizzle Kit configured for schema generation and migration management
+- **Seed Scripts**: Automated database population with sample data (20 areas, 6 teams, default config)
+- **Vercel Configuration**: Complete `vercel.json` setup for serverless deployment with proper routing
+- **Documentation**: Comprehensive DEPLOY.md with step-by-step Supabase and Vercel setup instructions
+
+## Previous Changes (October 31, 2025)
 
 ### Color Palette Refinement
 - Updated entire application to use deep blue (#1e1c3e) as primary brand color
@@ -93,16 +104,44 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 
-**Storage Pattern**: In-memory storage implementation via a storage abstraction layer (`IStorage` interface). The storage module maintains application state including service areas, teams, and configuration without external database dependencies in the base implementation.
+**Storage Architecture**: Dual-mode storage system with automatic selection based on environment configuration:
 
-**Data Models**:
-- **ServiceArea**: Represents mowing or garden maintenance locations with geographic coordinates, polygon boundaries, service type, status (Pendente/Em Execução/Concluído), scheduling metadata, and history tracking
-- **Team**: Field teams with service type, operational status, current assignment, and location
-- **AppConfig**: System-wide configuration including production rates for scheduling calculations
+**Storage Implementations**:
+1. **MemStorage** (In-Memory): Used when `DATABASE_URL` is not set. Ideal for development and testing with zero external dependencies.
+2. **DbStorage** (PostgreSQL via Drizzle ORM): Production-ready persistence using Neon/Supabase PostgreSQL. Automatically selected when `DATABASE_URL` environment variable is present.
 
-**Scheduling Algorithm**: Business logic for calculating mowing schedules based on configurable production rates (m²/day) per lote (contract lot). Algorithm accounts for business days only, skipping weekends, and sequences areas by ordem (priority order).
+**Storage Interface** (`IStorage`): Unified abstraction layer ensuring consistent API across both storage modes:
+- Service Areas CRUD (get, update, batch operations)
+- Team management and assignment
+- Configuration persistence
+- History tracking and manual scheduling
 
-**Database Integration Ready**: Drizzle ORM configured with PostgreSQL dialect pointing to Neon serverless database. Schema definitions in `shared/schema.ts` use Zod for runtime validation, ready for database migration when needed.
+**Database Schema** (`db/schema.ts`):
+- **service_areas**: Roçagem and jardins areas with geographic data, scheduling, history (JSONB), and polygon support
+- **teams**: Field teams with real-time location tracking
+- **app_config**: System-wide configuration including mowing production rates
+
+**Data Models** (TypeScript types in `shared/schema.ts`):
+- **ServiceArea**: Geographic coordinates, polygon boundaries, service type, status (Pendente/Em Execução/Concluído), manual/automatic scheduling flags, history array, next forecast
+- **Team**: Service type, operational status, current assignment, location
+- **AppConfig**: Production rates for scheduling calculations (m²/day per lote)
+
+**Scheduling Algorithm**: Business logic calculating mowing schedules based on configurable production rates. Algorithm:
+- Accounts for business days only (skips weekends)
+- Sequences areas by ordem (priority order)
+- Respects `manualSchedule` flag (skips manually scheduled areas)
+- Calculates days based on area size and production rate
+
+**Persistence Layer**:
+- Drizzle ORM with PostgreSQL dialect
+- Neon serverless driver (`@neondatabase/serverless`)
+- JSONB columns for complex data (history, location, polygon)
+- Automatic timestamp tracking (createdAt, updatedAt)
+
+**Migration & Seeding**:
+- Schema migrations via Drizzle Kit
+- Seed script (`db/seed.ts`) populates initial data
+- SQL scripts provided for manual setup in DEPLOY.md
 
 ### External Dependencies
 
