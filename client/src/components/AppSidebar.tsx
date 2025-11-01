@@ -128,7 +128,7 @@ export function AppSidebar({
           <Accordion type="single" collapsible defaultValue="limpeza" className="space-y-2">
             <AccordionItem value="limpeza" className="border-0">
               <AccordionTrigger 
-                className="rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 px-4 py-3 hover:no-underline data-[state=open]:bg-emerald-600/30 border border-emerald-600/40"
+                className="rounded-lg bg-emerald-600/20 dark:bg-emerald-400/20 hover:bg-emerald-600/30 dark:hover:bg-emerald-400/30 px-4 py-3 hover:no-underline data-[state=open]:bg-emerald-600/30 dark:data-[state=open]:bg-emerald-400/30 border border-emerald-600/40 dark:border-emerald-400/40"
                 data-testid="accordion-limpeza-urbana"
               >
                 <div className="flex items-center gap-3">
@@ -274,7 +274,7 @@ export function AppSidebar({
 
             <AccordionItem value="residuos" className="border-0">
               <AccordionTrigger 
-                className="rounded-lg bg-blue-600/20 hover:bg-blue-600/30 px-4 py-3 hover:no-underline data-[state=open]:bg-blue-600/30 border border-blue-600/40"
+                className="rounded-lg bg-blue-600/20 dark:bg-blue-400/20 hover:bg-blue-600/30 dark:hover:bg-blue-400/30 px-4 py-3 hover:no-underline data-[state=open]:bg-blue-600/30 dark:data-[state=open]:bg-blue-400/30 border border-blue-600/40 dark:border-blue-400/40"
                 data-testid="accordion-residuos"
               >
                 <div className="flex items-center gap-3">
