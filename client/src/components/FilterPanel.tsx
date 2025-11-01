@@ -99,7 +99,7 @@ export function FilterPanel({ areas, filters, onFilterChange, filteredCount }: F
                 placeholder="Endereço ou bairro..."
                 value={filters.search}
                 onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
-                className="pl-9"
+                className="pl-9 text-foreground"
                 data-testid="input-filter-search"
               />
             </div>
