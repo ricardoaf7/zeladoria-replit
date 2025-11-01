@@ -294,4 +294,19 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { DbStorage } from "./db-storage";
+
+// Inicializar storage baseado em variável de ambiente
+function initializeStorage() {
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (databaseUrl && databaseUrl.trim() !== "") {
+    console.log("🗄️  Usando DbStorage (PostgreSQL)");
+    return new DbStorage(databaseUrl);
+  } else {
+    console.log("💾 Usando MemStorage (in-memory)");
+    return new MemStorage();
+  }
+}
+
+export const storage = initializeStorage();
