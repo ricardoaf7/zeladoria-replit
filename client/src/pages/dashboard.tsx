@@ -89,7 +89,7 @@ export default function Dashboard() {
   }, [selectedArea]);
 
   const style = {
-    "--sidebar-width": "22rem",
+    "--sidebar-width": "28rem",
     "--sidebar-width-icon": "4rem",
   };
 
@@ -136,7 +136,10 @@ export default function Dashboard() {
   };
 
   return (
-    <SidebarProvider style={style as React.CSSProperties}>
+    <SidebarProvider 
+      style={style as React.CSSProperties}
+      defaultOpen={typeof window !== 'undefined' && window.innerWidth > 1024}
+    >
       <div className="flex h-screen w-full">
         <AppSidebar
           selectedService={selectedService}
