@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { DashboardMap } from "@/components/DashboardMap";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 import type { ServiceArea, Team, AppConfig } from "@shared/schema";
+import type { FilterCriteria } from "@/components/FilterPanel";
 import L from "leaflet";
 
 export default function Dashboard() {
@@ -12,6 +13,13 @@ export default function Dashboard() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [isRegistrationMode, setIsRegistrationMode] = useState(false);
   const [selectedAreaIds, setSelectedAreaIds] = useState<Set<number>>(new Set());
+  const [filters, setFilters] = useState<FilterCriteria>({
+    search: "",
+    bairro: "",
+    lote: "",
+    status: "",
+    tipo: "",
+  });
   const mapRef = useRef<L.Map | null>(null);
 
   const { data: rocagemAreas = [] } = useQuery<ServiceArea[]>({
@@ -29,6 +37,33 @@ export default function Dashboard() {
   const { data: config } = useQuery<AppConfig>({
     queryKey: ["/api/config"],
   });
+
+  // Filtrar áreas baseado nos critérios
+  const filteredRocagemAreas = useMemo(() => {
+    if (!filters.search && !filters.bairro && !filters.lote && !filters.status && !filters.tipo) {
+      return rocagemAreas;
+    }
+
+    return rocagemAreas.filter(area => {
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const endereco = area.endereco?.toLowerCase() || "";
+        const bairro = area.bairro?.toLowerCase() || "";
+        if (!endereco.includes(searchLower) && !bairro.includes(searchLower)) {
+          return false;
+        }
+      }
+
+      if (filters.bairro && area.bairro !== filters.bairro) return false;
+      if (filters.lote && area.lote?.toString() !== filters.lote) return false;
+      if (filters.status && area.status !== filters.status) return false;
+      if (filters.tipo && area.tipo !== filters.tipo) return false;
+
+      return true;
+    });
+  }, [rocagemAreas, filters]);
+
+  const hasActiveFilters = filters.search || filters.bairro || filters.lote || filters.status || filters.tipo;
 
   useEffect(() => {
     if (selectedArea && mapRef.current) {
@@ -107,6 +142,9 @@ export default function Dashboard() {
           selectedAreaIds={selectedAreaIds}
           onClearSelection={handleClearSelection}
           rocagemAreas={rocagemAreas}
+          filters={filters}
+          onFilterChange={setFilters}
+          filteredCount={filteredRocagemAreas.length}
         />
         
         <SidebarInset className="flex-1 overflow-hidden">
@@ -128,6 +166,7 @@ export default function Dashboard() {
                 teamsTouceiras: true,
               }}
               onAreaClick={handleAreaClick}
+              filteredAreaIds={hasActiveFilters ? new Set(filteredRocagemAreas.map(a => a.id)) : undefined}
               mapRef={mapRef}
               selectionMode={selectionMode}
               selectedAreaIds={selectedAreaIds}

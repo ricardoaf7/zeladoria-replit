@@ -1,0 +1,197 @@
+import { useState, useMemo } from "react";
+import { Search, X, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import type { ServiceArea } from "@shared/schema";
+
+export interface FilterCriteria {
+  search: string;
+  bairro: string;
+  lote: string;
+  status: string;
+  tipo: string;
+}
+
+interface FilterPanelProps {
+  areas: ServiceArea[];
+  filters: FilterCriteria;
+  onFilterChange: (filters: FilterCriteria) => void;
+  filteredCount: number;
+}
+
+export function FilterPanel({ areas, filters, onFilterChange, filteredCount }: FilterPanelProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const bairros = useMemo(() => {
+    const unique = new Set(areas.map(a => a.bairro).filter(Boolean) as string[]);
+    return Array.from(unique).sort();
+  }, [areas]);
+
+  const tipos = useMemo(() => {
+    const unique = new Set(areas.map(a => a.tipo).filter(Boolean) as string[]);
+    return Array.from(unique).sort();
+  }, [areas]);
+
+  const hasActiveFilters = filters.search || filters.bairro || filters.lote || filters.status || filters.tipo;
+
+  const handleClear = () => {
+    onFilterChange({
+      search: "",
+      bairro: "",
+      lote: "",
+      status: "",
+      tipo: "",
+    });
+  };
+
+  const activeFilterCount = [
+    filters.search,
+    filters.bairro,
+    filters.lote,
+    filters.status,
+    filters.tipo
+  ].filter(Boolean).length;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full justify-between"
+          data-testid="button-toggle-filters"
+        >
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <span>Filtros</span>
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {filteredCount} de {areas.length}
+          </span>
+        </Button>
+      </div>
+
+      {isExpanded && (
+        <div className="space-y-3 rounded-lg border bg-card p-3">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Buscar</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Endereço ou bairro..."
+                value={filters.search}
+                onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+                className="pl-9"
+                data-testid="input-filter-search"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">Lote</label>
+              <Select
+                value={filters.lote}
+                onValueChange={(value) => onFilterChange({ ...filters, lote: value })}
+              >
+                <SelectTrigger data-testid="select-filter-lote">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="1">Lote 1</SelectItem>
+                  <SelectItem value="2">Lote 2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">Status</label>
+              <Select
+                value={filters.status}
+                onValueChange={(value) => onFilterChange({ ...filters, status: value })}
+              >
+                <SelectTrigger data-testid="select-filter-status">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Em Execução">Em Execução</SelectItem>
+                  <SelectItem value="Concluído">Concluído</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Bairro</label>
+            <Select
+              value={filters.bairro}
+              onValueChange={(value) => onFilterChange({ ...filters, bairro: value })}
+            >
+              <SelectTrigger data-testid="select-filter-bairro">
+                <SelectValue placeholder="Todos os bairros" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                <SelectItem value="">Todos os bairros</SelectItem>
+                {bairros.map((bairro) => (
+                  <SelectItem key={bairro} value={bairro}>
+                    {bairro}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+            <Select
+              value={filters.tipo}
+              onValueChange={(value) => onFilterChange({ ...filters, tipo: value })}
+            >
+              <SelectTrigger data-testid="select-filter-tipo">
+                <SelectValue placeholder="Todos os tipos" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                <SelectItem value="">Todos os tipos</SelectItem>
+                {tipos.slice(0, 30).map((tipo) => (
+                  <SelectItem key={tipo} value={tipo}>
+                    {tipo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+              className="w-full"
+              data-testid="button-clear-filters"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Limpar Filtros
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { AreaInfoCard } from "./AreaInfoCard";
 import { BatchSchedulePanel } from "./BatchSchedulePanel";
 import { DailyRegistrationPanel } from "./DailyRegistrationPanel";
+import { FilterPanel, type FilterCriteria } from "./FilterPanel";
 import { Separator } from "@/components/ui/separator";
 import type { ServiceArea } from "@shared/schema";
 
@@ -48,6 +49,9 @@ interface AppSidebarProps {
   selectedAreaIds?: Set<number>;
   onClearSelection?: () => void;
   rocagemAreas?: ServiceArea[];
+  filters?: FilterCriteria;
+  onFilterChange?: (filters: FilterCriteria) => void;
+  filteredCount?: number;
 }
 
 export function AppSidebar({
@@ -63,6 +67,9 @@ export function AppSidebar({
   selectedAreaIds = new Set(),
   onClearSelection,
   rocagemAreas = [],
+  filters,
+  onFilterChange,
+  filteredCount = 0,
 }: AppSidebarProps) {
   const handleServiceClick = (service: string) => {
     if (onServiceSelect) {
@@ -84,6 +91,18 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent className="px-4">
+        {selectedService === 'rocagem' && filters && onFilterChange && (
+          <div className="mb-4">
+            <FilterPanel
+              areas={rocagemAreas}
+              filters={filters}
+              onFilterChange={onFilterChange}
+              filteredCount={filteredCount}
+            />
+            <Separator className="my-4" />
+          </div>
+        )}
+
         {selectedService === 'rocagem' && onRegistrationModeChange && (
           <div className="mb-4">
             <DailyRegistrationPanel

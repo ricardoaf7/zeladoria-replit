@@ -26,6 +26,7 @@ interface DashboardMapProps {
   mapRef?: React.MutableRefObject<L.Map | null>;
   selectionMode?: boolean;
   selectedAreaIds?: Set<number>;
+  filteredAreaIds?: Set<number>;
 }
 
 export function DashboardMap({
@@ -37,6 +38,7 @@ export function DashboardMap({
   mapRef: externalMapRef,
   selectionMode = false,
   selectedAreaIds = new Set(),
+  filteredAreaIds,
 }: DashboardMapProps) {
   const { toast } = useToast();
   const internalMapRef = useRef<L.Map | null>(null);
@@ -182,6 +184,8 @@ export function DashboardMap({
       if (!layerGroup) return;
 
       const isSelected = selectedAreaIds.has(area.id);
+      const isFiltered = filteredAreaIds ? filteredAreaIds.has(area.id) : true;
+      const opacity = isFiltered ? 1 : 0.2;
       const color = getAreaColor(area, today, isSelected);
       const isPulsing = area.status === "Em Execução";
 
@@ -191,8 +195,9 @@ export function DashboardMap({
           {
             color: color,
             fillColor: color,
-            fillOpacity: 0.4,
+            fillOpacity: isFiltered ? 0.4 : 0.08,
             weight: 2,
+            opacity: opacity,
             className: isPulsing ? "animate-pulse" : "",
           }
         );
@@ -223,7 +228,7 @@ export function DashboardMap({
       } else {
         const icon = L.divIcon({
           className: `custom-marker ${isPulsing ? "animate-pulse" : ""}`,
-          html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: move;"></div>`,
+          html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: move; opacity: ${opacity};"></div>`,
           iconSize: [12, 12],
           iconAnchor: [6, 6],
         });
@@ -268,7 +273,7 @@ export function DashboardMap({
         marker.addTo(layerGroup);
       }
     });
-  }, [rocagemAreas, onAreaClick, selectedAreaIds]);
+  }, [rocagemAreas, onAreaClick, selectedAreaIds, filteredAreaIds]);
 
   useEffect(() => {
     if (!mapRef.current) return;
