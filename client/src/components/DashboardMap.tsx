@@ -228,14 +228,14 @@ export function DashboardMap({
       } else {
         const icon = L.divIcon({
           className: `custom-marker ${isPulsing ? "animate-pulse" : ""}`,
-          html: `<div style="
+          html: `<div data-testid="area-marker-${area.id}" data-area-id="${area.id}" style="
             background: ${isSelected ? 'rgba(147, 51, 234, 0.3)' : 'rgba(52, 211, 153, 0.25)'};
             width: 16px; 
             height: 16px; 
             border-radius: 50%; 
             border: 3px solid ${isSelected ? '#9333ea' : '#047857'};
             box-shadow: 0 2px 6px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.5);
-            cursor: move; 
+            cursor: ${selectionMode ? 'pointer' : 'move'}; 
             opacity: ${opacity};
             transition: all 0.2s ease;
           "></div>`,
