@@ -16,7 +16,9 @@ import {
   CheckSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import operacoesLogo from "@assets/Operacoes_Logo_Positivo_1762027620245.png";
+import operacoesLogoPositivo from "@assets/Operacoes_Logo_Positivo_1762027620245.png";
+import operacoesLogoNegativo from "@assets/Operacoes_Logo_Negativo_1762032098603.png";
+import { useTheme } from "@/components/theme-provider";
 import {
   Sidebar,
   SidebarContent,
@@ -71,6 +73,8 @@ export function AppSidebar({
   onFilterChange,
   filteredCount = 0,
 }: AppSidebarProps) {
+  const { theme } = useTheme();
+  
   const handleServiceClick = (service: string) => {
     if (onServiceSelect) {
       if (selectedService === service) {
@@ -86,7 +90,7 @@ export function AppSidebar({
       <SidebarHeader className="p-6 pb-4">
         <div className="flex flex-col gap-2">
           <img 
-            src={operacoesLogo} 
+            src={theme === 'dark' ? operacoesLogoNegativo : operacoesLogoPositivo} 
             alt="Diretoria de Operações"
             className="h-16 w-auto object-contain"
           />
