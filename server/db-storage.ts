@@ -213,11 +213,11 @@ export class DbStorage implements IStorage {
     return updated;
   }
 
-  async registerDailyMowing(areaIds: number[], date: string): Promise<void> {
+  async registerDailyMowing(areaIds: number[], date: string, type: 'completed' | 'forecast' = 'completed'): Promise<void> {
     // Importar algoritmo de agendamento
     const { recalculateAfterCompletion } = await import('@shared/schedulingAlgorithm');
     
-    // 1. Atualizar cada área com ultimaRocagem, adicionar histórico, marcar como Concluído
+    // 1. Atualizar cada área baseado no tipo de registro
     for (const areaId of areaIds) {
       const area = await this.getAreaById(areaId);
       if (!area) continue;
@@ -226,39 +226,55 @@ export class DbStorage implements IStorage {
         ...(area.history || []),
         {
           date: date,
-          status: "Concluído",
-          observation: "Roçagem registrada pelo sistema",
+          status: type === 'completed' ? "Concluído" : "Previsto",
+          type: type,
+          observation: type === 'completed' ? "Roçagem concluída" : "Previsão de roçagem",
         }
       ];
       
-      await this.db
-        .update(serviceAreas)
-        .set({
-          ultimaRocagem: date,
-          status: "Concluído",
-          history: newHistory as any,
-          updatedAt: new Date(),
-        })
-        .where(eq(serviceAreas.id, areaId));
+      if (type === 'completed') {
+        // Registro de conclusão: atualizar ultimaRocagem e status
+        await this.db
+          .update(serviceAreas)
+          .set({
+            ultimaRocagem: date,
+            status: "Concluído",
+            history: newHistory as any,
+            updatedAt: new Date(),
+          })
+          .where(eq(serviceAreas.id, areaId));
+      } else {
+        // Registro de previsão: apenas adicionar no histórico
+        await this.db
+          .update(serviceAreas)
+          .set({
+            history: newHistory as any,
+            updatedAt: new Date(),
+          })
+          .where(eq(serviceAreas.id, areaId));
+      }
     }
     
-    // 2. Buscar todas as áreas e configuração
-    const allAreas = await this.getAllAreas('rocagem');
-    const config = await this.getConfig();
-    
-    // 3. Recalcular previsões para lotes afetados
-    const predictions = recalculateAfterCompletion(allAreas, areaIds, config);
-    
-    // 4. Atualizar previsões no banco
-    for (const prediction of predictions) {
-      await this.db
-        .update(serviceAreas)
-        .set({
-          proximaPrevisao: prediction.proximaPrevisao,
-          daysToComplete: prediction.daysToComplete,
-          updatedAt: new Date(),
-        })
-        .where(eq(serviceAreas.id, prediction.areaId));
+    // 2. Se foi registro de conclusão, recalcular previsões
+    if (type === 'completed') {
+      // Buscar todas as áreas e configuração
+      const allAreas = await this.getAllAreas('rocagem');
+      const config = await this.getConfig();
+      
+      // 3. Recalcular previsões para lotes afetados
+      const predictions = recalculateAfterCompletion(allAreas, areaIds, config);
+      
+      // 4. Atualizar previsões no banco
+      for (const prediction of predictions) {
+        await this.db
+          .update(serviceAreas)
+          .set({
+            proximaPrevisao: prediction.proximaPrevisao,
+            daysToComplete: prediction.daysToComplete,
+            updatedAt: new Date(),
+          })
+          .where(eq(serviceAreas.id, prediction.areaId));
+      }
     }
   }
 

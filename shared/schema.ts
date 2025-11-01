@@ -15,6 +15,7 @@ export const serviceAreaSchema = z.object({
   history: z.array(z.object({
     date: z.string(),
     status: z.string(),
+    type: z.enum(['completed', 'forecast']).optional(),
     observation: z.string().optional(),
   })).default([]),
   polygon: z.array(z.object({

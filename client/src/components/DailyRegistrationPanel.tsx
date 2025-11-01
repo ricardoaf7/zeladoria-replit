@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Calendar, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Calendar, CheckCircle2, XCircle, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -20,6 +21,7 @@ export function DailyRegistrationPanel({
   onClearSelection 
 }: DailyRegistrationPanelProps) {
   const [isRegistrationMode, setIsRegistrationMode] = useState(false);
+  const [registrationType, setRegistrationType] = useState<'completed' | 'forecast'>('completed');
   const [registrationDate, setRegistrationDate] = useState(
     new Date().toISOString().split('T')[0]
   );
@@ -27,14 +29,15 @@ export function DailyRegistrationPanel({
   const queryClient = useQueryClient();
 
   const registerMutation = useMutation({
-    mutationFn: async ({ areaIds, date }: { areaIds: number[], date: string }) => {
-      const res = await apiRequest('POST', '/api/areas/register-daily', { areaIds, date });
+    mutationFn: async ({ areaIds, date, type }: { areaIds: number[], date: string, type: 'completed' | 'forecast' }) => {
+      const res = await apiRequest('POST', '/api/areas/register-daily', { areaIds, date, type });
       return await res.json();
     },
     onSuccess: (data: any) => {
+      const typeLabel = registrationType === 'completed' ? 'registrada' : 'prevista';
       toast({
-        title: "Roçagem registrada!",
-        description: data.message || `${data.count} área(s) registrada(s) com sucesso`,
+        title: `Roçagem ${typeLabel}!`,
+        description: data.message || `${data.count} área(s) ${typeLabel}(s) com sucesso`,
       });
       
       // Invalidar cache para recarregar dados
@@ -77,6 +80,7 @@ export function DailyRegistrationPanel({
     registerMutation.mutate({
       areaIds: selectedAreas,
       date: registrationDate,
+      type: registrationType,
     });
   };
 
@@ -84,11 +88,17 @@ export function DailyRegistrationPanel({
     <Card className="w-full" data-testid="card-daily-registration">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Calendar className="h-5 w-5" />
+          {registrationType === 'completed' ? (
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+          ) : (
+            <Clock className="h-5 w-5 text-blue-600" />
+          )}
           Registro Diário de Roçagem
         </CardTitle>
         <CardDescription>
-          Registre as áreas roçadas hoje pela equipe
+          {registrationType === 'completed' 
+            ? 'Registre as áreas roçadas pela equipe'
+            : 'Registre a previsão de roçagem das áreas'}
         </CardDescription>
       </CardHeader>
       
@@ -105,14 +115,39 @@ export function DailyRegistrationPanel({
           </Button>
         ) : (
           <>
+            <div className="space-y-3 p-3 rounded-md bg-muted/50 border">
+              <div className="flex items-center justify-between">
+                <Label 
+                  htmlFor="registration-type" 
+                  className="text-sm font-medium"
+                >
+                  {registrationType === 'completed' ? 'Registrar como Concluído' : 'Registrar como Previsto'}
+                </Label>
+                <Switch
+                  id="registration-type"
+                  checked={registrationType === 'forecast'}
+                  onCheckedChange={(checked) => setRegistrationType(checked ? 'forecast' : 'completed')}
+                  data-testid="switch-registration-type"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {registrationType === 'completed' 
+                  ? 'A data deve ser passada ou hoje'
+                  : 'A data pode ser futura para previsões'}
+              </p>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="registration-date">Data da Roçagem</Label>
+              <Label htmlFor="registration-date">
+                {registrationType === 'completed' ? 'Data da Roçagem' : 'Data Prevista'}
+              </Label>
               <Input
                 id="registration-date"
                 type="date"
                 value={registrationDate}
                 onChange={(e) => setRegistrationDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
+                max={registrationType === 'completed' ? new Date().toISOString().split('T')[0] : undefined}
+                min={registrationType === 'forecast' ? new Date().toISOString().split('T')[0] : undefined}
                 data-testid="input-registration-date"
               />
             </div>

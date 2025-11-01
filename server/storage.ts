@@ -9,9 +9,9 @@ export interface IStorage {
   updateAreaPolygon(id: number, polygon: Array<{ lat: number; lng: number }>): Promise<ServiceArea | undefined>;
   updateAreaPosition(id: number, lat: number, lng: number): Promise<ServiceArea | undefined>;
   updateArea(id: number, data: Partial<ServiceArea>): Promise<ServiceArea | undefined>;
-  addHistoryEntry(areaId: number, entry: { date: string; status: string; observation?: string }): Promise<ServiceArea | undefined>;
+  addHistoryEntry(areaId: number, entry: { date: string; status: string; type?: 'completed' | 'forecast'; observation?: string }): Promise<ServiceArea | undefined>;
   batchScheduleAreas(areaIds: number[], scheduledDate: string, daysToComplete?: number): Promise<ServiceArea[]>;
-  registerDailyMowing(areaIds: number[], date: string): Promise<void>;
+  registerDailyMowing(areaIds: number[], date: string, type: 'completed' | 'forecast'): Promise<void>;
   
   // Teams
   getAllTeams(): Promise<Team[]>;
@@ -281,34 +281,48 @@ export class MemStorage implements IStorage {
     return this.config;
   }
 
-  async registerDailyMowing(areaIds: number[], date: string): Promise<void> {
+  async registerDailyMowing(areaIds: number[], date: string, type: 'completed' | 'forecast' = 'completed'): Promise<void> {
     // Importar algoritmo de agendamento
     const { recalculateAfterCompletion } = await import('@shared/schedulingAlgorithm');
     
-    // 1. Atualizar cada área com ultimaRocagem, adicionar histórico, marcar como Concluído
+    // 1. Atualizar cada área baseado no tipo de registro
     for (const areaId of areaIds) {
       const area = await this.getAreaById(areaId);
       if (!area) continue;
       
-      area.ultimaRocagem = date;
-      area.status = "Concluído";
-      area.history.push({
-        date: date,
-        status: "Concluído",
-        observation: "Roçagem registrada pelo sistema",
-      });
+      if (type === 'completed') {
+        // Registro de conclusão: atualizar ultimaRocagem e status
+        area.ultimaRocagem = date;
+        area.status = "Concluído";
+        area.history.push({
+          date: date,
+          status: "Concluído",
+          type: 'completed',
+          observation: "Roçagem concluída",
+        });
+      } else {
+        // Registro de previsão: apenas adicionar no histórico
+        area.history.push({
+          date: date,
+          status: "Previsto",
+          type: 'forecast',
+          observation: "Previsão de roçagem",
+        });
+      }
     }
     
-    // 2. Recalcular previsões para lotes afetados
-    const allAreas = this.rocagemAreas;
-    const predictions = recalculateAfterCompletion(allAreas, areaIds, this.config);
-    
-    // 3. Atualizar previsões em memória
-    for (const prediction of predictions) {
-      const area = await this.getAreaById(prediction.areaId);
-      if (area) {
-        area.proximaPrevisao = prediction.proximaPrevisao;
-        area.daysToComplete = prediction.daysToComplete;
+    // 2. Se foi registro de conclusão, recalcular previsões para lotes afetados
+    if (type === 'completed') {
+      const allAreas = this.rocagemAreas;
+      const predictions = recalculateAfterCompletion(allAreas, areaIds, this.config);
+      
+      // 3. Atualizar previsões em memória
+      for (const prediction of predictions) {
+        const area = await this.getAreaById(prediction.areaId);
+        if (area) {
+          area.proximaPrevisao = prediction.proximaPrevisao;
+          area.daysToComplete = prediction.daysToComplete;
+        }
       }
     }
   }

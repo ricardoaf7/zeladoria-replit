@@ -246,14 +246,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const registerSchema = z.object({
         areaIds: z.array(z.number()).min(1, "Selecione pelo menos uma área"),
         date: z.string(),
+        type: z.enum(['completed', 'forecast']).default('completed'),
       });
 
-      const { areaIds, date } = registerSchema.parse(req.body);
-      await storage.registerDailyMowing(areaIds, date);
+      const { areaIds, date, type } = registerSchema.parse(req.body);
+      await storage.registerDailyMowing(areaIds, date, type);
 
+      const typeLabel = type === 'completed' ? 'registrada' : 'prevista';
       res.json({ 
         success: true, 
-        message: `${areaIds.length} área(s) registrada(s) com sucesso`,
+        message: `${areaIds.length} área(s) ${typeLabel}(s) com sucesso`,
         count: areaIds.length 
       });
     } catch (error) {
