@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.draw.css";
-import "leaflet-draw";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PolygonAssignmentModal } from "./PolygonAssignmentModal";
+import { MapLayerControl, type MapLayerType } from "./MapLayerControl";
 import type { ServiceArea, Team } from "@shared/schema";
 
 interface DashboardMapProps {
@@ -47,26 +45,16 @@ export function DashboardMap({
   const layerGroupsRef = useRef<{
     [key: string]: L.LayerGroup;
   }>({});
-  const rocagemAreasRef = useRef<ServiceArea[]>(rocagemAreas);
-  const [pendingPolygon, setPendingPolygon] = useState<Array<{ lat: number; lng: number }> | null>(null);
-  
-  useEffect(() => {
-    rocagemAreasRef.current = rocagemAreas;
-  }, [rocagemAreas]);
-  
-  const savePolygonMutation = useMutation({
-    mutationFn: async ({ areaId, polygon }: { areaId: number; polygon: Array<{ lat: number; lng: number }> }) => {
-      return await apiRequest("PATCH", `/api/areas/${areaId}/polygon`, { polygon });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/areas/rocagem"] });
-      toast({
-        title: "Polígono Salvo",
-        description: "O polígono foi salvo com sucesso.",
-      });
-      setPendingPolygon(null);
-    },
+  const tileLayersRef = useRef<{
+    standard: L.TileLayer | null;
+    satellite: L.TileLayer | null;
+    hybrid: L.TileLayer | null;
+  }>({
+    standard: null,
+    satellite: null,
+    hybrid: null,
   });
+  const [currentLayer, setCurrentLayer] = useState<MapLayerType>("standard");
 
   const updatePositionMutation = useMutation({
     mutationFn: async ({ areaId, lat, lng }: { areaId: number; lat: number; lng: number }) => {
@@ -88,52 +76,46 @@ export function DashboardMap({
       zoomControl: false,
     }).setView([-23.31, -51.16], 13);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(map);
+    // Criar as 3 tile layers
+    tileLayersRef.current.standard = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }
+    );
+
+    tileLayersRef.current.satellite = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+        maxZoom: 19,
+      }
+    );
+
+    // Híbrido = Satélite + Labels do OpenStreetMap
+    tileLayersRef.current.hybrid = L.layerGroup([
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+          maxZoom: 19,
+        }
+      ),
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png",
+        {
+          attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+          maxZoom: 19,
+          pane: "shadowPane",
+        }
+      ),
+    ]) as unknown as L.TileLayer;
+
+    // Adicionar camada padrão
+    tileLayersRef.current.standard.addTo(map);
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
-
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-
-    const drawControl = new L.Control.Draw({
-      position: "topright",
-      draw: {
-        polygon: {
-          allowIntersection: false,
-          showArea: true,
-        },
-        polyline: false,
-        rectangle: false,
-        circle: false,
-        marker: false,
-        circlemarker: false,
-      },
-      edit: {
-        featureGroup: drawnItems,
-      },
-    });
-    map.addControl(drawControl);
-
-    map.on(L.Draw.Event.CREATED, (event: any) => {
-      const layer = event.layer;
-      drawnItems.addLayer(layer);
-      
-      const latlngs = layer.getLatLngs()[0];
-      const polygon = latlngs.map((ll: L.LatLng) => ({ lat: ll.lat, lng: ll.lng }));
-      
-      if (rocagemAreasRef.current.length > 0) {
-        setPendingPolygon(polygon);
-      } else {
-        toast({
-          title: "Nenhuma Área Disponível",
-          description: "Nenhuma área de roçagem foi encontrada. Adicione áreas antes de desenhar polígonos.",
-          variant: "destructive",
-        });
-      }
-    });
 
     layerGroupsRef.current = {
       rocagemLote1: L.layerGroup().addTo(map),
@@ -164,6 +146,24 @@ export function DashboardMap({
       }
     });
   }, [layerFilters]);
+
+  // Trocar entre as camadas do mapa
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Remover todas as camadas
+    Object.values(tileLayersRef.current).forEach((layer) => {
+      if (layer && mapRef.current) {
+        mapRef.current.removeLayer(layer as L.Layer);
+      }
+    });
+
+    // Adicionar a camada selecionada
+    const selectedLayer = tileLayersRef.current[currentLayer];
+    if (selectedLayer && mapRef.current) {
+      selectedLayer.addTo(mapRef.current);
+    }
+  }, [currentLayer]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -394,15 +394,10 @@ export function DashboardMap({
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainerRef} className="w-full h-full" data-testid="map-container" />
-
-      {pendingPolygon && (
-        <PolygonAssignmentModal
-          areas={rocagemAreas}
-          polygon={pendingPolygon}
-          onConfirm={(areaId) => savePolygonMutation.mutate({ areaId, polygon: pendingPolygon })}
-          onCancel={() => setPendingPolygon(null)}
-        />
-      )}
+      <MapLayerControl 
+        currentLayer={currentLayer}
+        onLayerChange={setCurrentLayer}
+      />
     </div>
   );
 }
