@@ -53,10 +53,16 @@ export async function importRealData(csvContent?: string) {
     if (csvContent) {
       content = csvContent;
     } else {
-      const csvPath = "/tmp/areas_londrina.csv";
+      const projectCsvPath = "/home/runner/workspace/server/data/areas_londrina.csv";
+      const tmpCsvPath = "/tmp/areas_londrina.csv";
       
-      if (!fs.existsSync(csvPath)) {
-        throw new Error("Arquivo CSV não encontrado em /tmp/areas_londrina.csv");
+      let csvPath: string;
+      if (fs.existsSync(projectCsvPath)) {
+        csvPath = projectCsvPath;
+      } else if (fs.existsSync(tmpCsvPath)) {
+        csvPath = tmpCsvPath;
+      } else {
+        throw new Error("Arquivo CSV não encontrado");
       }
       
       content = fs.readFileSync(csvPath, 'utf-8');

@@ -14,7 +14,7 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/download-csv", async (req, res) => {
     try {
-      const csvPath = "/tmp/areas_londrina.csv";
+      const csvPath = path.join(process.cwd(), "server", "data", "areas_londrina.csv");
       
       if (!fs.existsSync(csvPath)) {
         res.status(404).json({ error: "Arquivo CSV não encontrado no servidor" });
