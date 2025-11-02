@@ -27,6 +27,13 @@ export default function Dashboard() {
   });
   const mapRef = useRef<L.Map | null>(null);
 
+  const handleServiceSelect = (service: string) => {
+    setSelectedService(service);
+    if (isMobile && bottomSheetState === "minimized") {
+      setBottomSheetState("medium");
+    }
+  };
+
   const { data: rocagemAreas = [] } = useQuery<ServiceArea[]>({
     queryKey: ["/api/areas/rocagem"],
   });
@@ -177,7 +184,7 @@ export default function Dashboard() {
             <AppSidebar
               standalone
               selectedService={selectedService}
-              onServiceSelect={setSelectedService}
+              onServiceSelect={handleServiceSelect}
               selectedArea={selectedArea}
               onAreaClose={() => setSelectedArea(null)}
               onAreaUpdate={handleAreaUpdate}
@@ -207,7 +214,7 @@ export default function Dashboard() {
       <div className="flex h-screen w-full">
         <AppSidebar
           selectedService={selectedService}
-          onServiceSelect={setSelectedService}
+          onServiceSelect={handleServiceSelect}
           selectedArea={selectedArea}
           onAreaClose={() => setSelectedArea(null)}
           onAreaUpdate={handleAreaUpdate}
