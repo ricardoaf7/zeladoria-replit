@@ -272,24 +272,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/import-data", upload.single('csvFile'), async (req, res) => {
+    console.log("📥 Recebida requisição de importação");
+    
     try {
       const ADMIN_PASSWORD = process.env.ADMIN_IMPORT_PASSWORD || "cmtu2025";
       const password = req.body.password;
       
+      console.log("🔐 Validando senha...");
       if (!password || password !== ADMIN_PASSWORD) {
+        console.log("❌ Senha incorreta");
         res.status(401).json({ error: "Senha incorreta" });
         return;
       }
+      console.log("✅ Senha correta");
 
+      console.log("📄 Verificando arquivo...");
       if (!req.file) {
+        console.log("❌ Nenhum arquivo enviado");
         res.status(400).json({ error: "Arquivo CSV não enviado" });
         return;
       }
+      console.log(`✅ Arquivo recebido: ${req.file.originalname}, tamanho: ${req.file.size} bytes`);
 
       const csvContent = req.file.buffer.toString('utf-8');
+      const lines = csvContent.split('\n').length;
+      console.log(`📊 CSV tem ${lines} linhas`);
+      
+      console.log("🔄 Importando módulo...");
       const { importRealData } = await import("../db/import-helper.js");
       
+      console.log("🚀 Iniciando importação...");
       const result = await importRealData(csvContent);
+      console.log(`✅ Importação concluída: ${result.inserted} inseridas, ${result.skipped} ignoradas`);
       
       res.json({ 
         success: true, 
@@ -298,10 +312,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         skipped: result.skipped
       });
     } catch (error: any) {
-      console.error("Error importing data:", error);
+      console.error("💥 ERRO na importação:", error);
+      console.error("Stack trace:", error.stack);
       res.status(500).json({ 
         error: "Falha ao importar dados", 
-        details: error.message 
+        details: error.message,
+        stack: error.stack
       });
     }
   });
