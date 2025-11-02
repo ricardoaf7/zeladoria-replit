@@ -247,6 +247,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/import-data", async (req, res) => {
+    try {
+      const passwordSchema = z.object({
+        password: z.string(),
+      });
+
+      const { password } = passwordSchema.parse(req.body);
+      
+      const ADMIN_PASSWORD = process.env.ADMIN_IMPORT_PASSWORD || "cmtu2025";
+      
+      if (password !== ADMIN_PASSWORD) {
+        res.status(401).json({ error: "Senha incorreta" });
+        return;
+      }
+
+      const { importRealData } = await import("../db/import-helper.js");
+      
+      const result = await importRealData();
+      
+      res.json({ 
+        success: true, 
+        message: `✅ ${result.inserted} áreas importadas com sucesso!`,
+        inserted: result.inserted,
+        skipped: result.skipped
+      });
+    } catch (error: any) {
+      console.error("Error importing data:", error);
+      res.status(500).json({ 
+        error: "Falha ao importar dados", 
+        details: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
