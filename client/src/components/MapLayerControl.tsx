@@ -78,7 +78,7 @@ export function MapLayerControl({ currentLayer, onLayerChange }: MapLayerControl
       {/* Overlay para fechar o menu ao clicar fora */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[-1]"
+          className="fixed inset-0 z-[999]"
           onClick={() => setIsOpen(false)}
         />
       )}
