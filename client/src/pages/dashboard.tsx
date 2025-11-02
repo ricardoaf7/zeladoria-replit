@@ -13,7 +13,7 @@ import L from "leaflet";
 export default function Dashboard() {
   const isMobile = useIsMobile();
   const [selectedArea, setSelectedArea] = useState<ServiceArea | null>(null);
-  const [selectedService, setSelectedService] = useState<string>('rocagem');
+  const [selectedService, setSelectedService] = useState<string>('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [isRegistrationMode, setIsRegistrationMode] = useState(false);
   const [selectedAreaIds, setSelectedAreaIds] = useState<Set<number>>(new Set());
