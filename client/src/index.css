@@ -383,6 +383,11 @@
   }
 }
 
+/* Força sidebar a usar largura configurada em todas as telas (mobile e desktop) */
+.sidebar-full-width {
+  max-width: none !important;
+}
+
 /* Animação de pulso suave para marcadores em execução */
 @keyframes marker-pulse {
   0%, 100% {
