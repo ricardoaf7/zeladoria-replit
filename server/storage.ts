@@ -11,6 +11,7 @@ export interface IStorage {
   updateArea(id: number, data: Partial<ServiceArea>): Promise<ServiceArea | undefined>;
   addHistoryEntry(areaId: number, entry: { date: string; status: string; type?: 'completed' | 'forecast'; observation?: string }): Promise<ServiceArea | undefined>;
   registerDailyMowing(areaIds: number[], date: string, type: 'completed' | 'forecast'): Promise<void>;
+  clearSimulationData(serviceType: string): Promise<number>;
   
   // Teams
   getAllTeams(): Promise<Team[]>;
@@ -303,6 +304,19 @@ export class MemStorage implements IStorage {
         }
       }
     }
+  }
+
+  async clearSimulationData(serviceType: string): Promise<number> {
+    const areas = await this.getAllAreas(serviceType);
+    
+    for (const area of areas) {
+      area.history = [];
+      area.status = "Pendente";
+      area.ultimaRocagem = null;
+      area.proximaPrevisao = null;
+    }
+    
+    return areas.length;
   }
 }
 

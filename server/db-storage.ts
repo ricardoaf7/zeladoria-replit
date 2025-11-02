@@ -259,6 +259,25 @@ export class DbStorage implements IStorage {
     }
   }
 
+  async clearSimulationData(serviceType: string): Promise<number> {
+    const areas = await this.getAllAreas(serviceType);
+    
+    for (const area of areas) {
+      await this.db
+        .update(serviceAreas)
+        .set({
+          history: [] as any,
+          status: "Pendente",
+          ultimaRocagem: null,
+          proximaPrevisao: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(serviceAreas.id, area.id));
+    }
+    
+    return areas.length;
+  }
+
   private mapDbAreaToServiceArea(dbArea: any): ServiceArea {
     return {
       id: dbArea.id,

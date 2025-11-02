@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, AlertCircle, Loader2, Database } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, Database, Trash2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function AdminImport() {
   const [password, setPassword] = useState("");
+  const [clearPassword, setClearPassword] = useState("");
 
   const importMutation = useMutation({
     mutationFn: async (password: string) => {
@@ -18,10 +20,23 @@ export default function AdminImport() {
     },
   });
 
+  const clearMutation = useMutation({
+    mutationFn: async (password: string) => {
+      const res = await apiRequest("POST", "/api/admin/clear-simulation", { password });
+      return await res.json();
+    },
+  });
+
   const handleImport = (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) return;
     importMutation.mutate(password);
+  };
+
+  const handleClear = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clearPassword) return;
+    clearMutation.mutate(clearPassword);
   };
 
   return (
@@ -119,6 +134,87 @@ export default function AdminImport() {
               </AlertDescription>
             </Alert>
           )}
+
+          <Separator className="my-6" />
+
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Trash2 className="h-4 w-4 text-orange-600" />
+                Limpar Dados Simulados
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Remove os dados de histórico simulados usados para apresentação
+              </p>
+            </div>
+
+            {!clearMutation.isSuccess ? (
+              <form onSubmit={handleClear} className="space-y-3">
+                <Input
+                  data-testid="input-clear-password"
+                  type="password"
+                  placeholder="Senha de administrador"
+                  value={clearPassword}
+                  onChange={(e) => setClearPassword(e.target.value)}
+                  disabled={clearMutation.isPending}
+                  className="text-sm"
+                />
+
+                {clearMutation.isError && (
+                  <Alert variant="destructive" className="py-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                      {(clearMutation.error as any)?.message || "Erro ao limpar dados. Verifique a senha."}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  data-testid="button-clear-simulation"
+                  variant="destructive"
+                  size="sm"
+                  className="w-full"
+                  disabled={!clearPassword || clearMutation.isPending}
+                >
+                  {clearMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Limpando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Limpar Dados Simulados
+                    </>
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950 py-2">
+                <CheckCircle2 className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800 dark:text-orange-200 text-sm">
+                  <div className="space-y-1">
+                    <p className="font-semibold">
+                      {(clearMutation.data as any)?.message || "Dados limpos!"}
+                    </p>
+                    <p className="text-xs">
+                      ✅ {(clearMutation.data as any)?.cleared || 0} áreas resetadas
+                    </p>
+                    <Button
+                      data-testid="button-reload"
+                      onClick={() => window.location.reload()}
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                    >
+                      Recarregar Página
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

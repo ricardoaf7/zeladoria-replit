@@ -310,6 +310,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/clear-simulation", async (req, res) => {
+    console.log("🧹 Recebida requisição para limpar dados simulados");
+    
+    try {
+      const ADMIN_PASSWORD = process.env.ADMIN_IMPORT_PASSWORD || "cmtu2025";
+      const password = req.body.password;
+      
+      if (!password || password !== ADMIN_PASSWORD) {
+        console.log("❌ Senha incorreta");
+        res.status(401).json({ error: "Senha incorreta" });
+        return;
+      }
+      
+      console.log("🔄 Limpando histórico de todas as áreas...");
+      const cleared = await storage.clearSimulationData('rocagem');
+      
+      console.log(`✅ ${cleared} áreas limpas`);
+      
+      res.json({ 
+        success: true, 
+        message: `✅ Dados simulados removidos de ${cleared} áreas!`,
+        cleared
+      });
+    } catch (error: any) {
+      console.error("💥 ERRO ao limpar dados:", error);
+      res.status(500).json({ 
+        error: "Falha ao limpar dados simulados", 
+        details: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
