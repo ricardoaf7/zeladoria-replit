@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 **Layout Pattern**: Full-screen split layout with a collapsible sidebar for filters, scheduling, and data entry, and a map view.
 **State Management**: TanStack Query for server state; component-level state via React hooks.
 **Routing**: Wouter for client-side routing.
-**Map Integration**: Leaflet.js for interactive mapping, including Leaflet.draw for polygon editing. Displays color-coded service areas and team locations.
+**Map Integration**: Leaflet.js for interactive mapping, including Leaflet.draw for polygon editing. Displays service areas as circular markers (L.circleMarker) with 6-tier color-coded visualization based on 45-day mowing cycles: 5 green shades (#d1fae5 to #10b981) for areas on schedule, plus red (#ef4444) for overdue areas (>45 days). Interactive legend with clickable time-range filters (0-5d, 5-15d, 15-25d, 25-35d, 35-44d, >45d) and custom date picker for targeted area inspection.
 
 ### Backend Architecture
 
