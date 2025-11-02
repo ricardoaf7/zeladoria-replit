@@ -82,7 +82,7 @@ export function AppSidebar({
   };
 
   return (
-    <Sidebar className="border-r-0 sidebar-full-width">
+    <Sidebar className="border-r-0 sm:!max-w-none">
       <SidebarHeader className="p-4 pb-3">
         <div className="flex flex-col gap-1.5">
           <img 
