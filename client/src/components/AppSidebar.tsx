@@ -79,7 +79,12 @@ export function AppSidebar({
   
   const handleServiceClick = (service: string) => {
     if (onServiceSelect) {
-      onServiceSelect(service);
+      // Toggle: se clicar no serviço já selecionado, desseleciona
+      if (selectedService === service) {
+        onServiceSelect('');
+      } else {
+        onServiceSelect(service);
+      }
     }
   };
 
