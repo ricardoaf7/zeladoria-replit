@@ -1,11 +1,6 @@
+import { useState } from "react";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export type MapLayerType = "standard" | "satellite" | "hybrid";
 
@@ -15,6 +10,8 @@ interface MapLayerControlProps {
 }
 
 export function MapLayerControl({ currentLayer, onLayerChange }: MapLayerControlProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const getLayerLabel = (layer: MapLayerType) => {
     switch (layer) {
       case "standard":
@@ -26,44 +23,65 @@ export function MapLayerControl({ currentLayer, onLayerChange }: MapLayerControl
     }
   };
 
+  const handleLayerSelect = (layer: MapLayerType) => {
+    onLayerChange(layer);
+    setIsOpen(false);
+  };
+
   return (
     <div className="absolute top-4 right-4 z-[1000]">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="shadow-lg"
-            data-testid="button-map-layers"
-          >
-            <Layers className="h-4 w-4 mr-2" />
-            {getLayerLabel(currentLayer)}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={() => onLayerChange("standard")}
-            className={currentLayer === "standard" ? "bg-accent" : ""}
-            data-testid="layer-standard"
-          >
-            Padrão
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onLayerChange("satellite")}
-            className={currentLayer === "satellite" ? "bg-accent" : ""}
-            data-testid="layer-satellite"
-          >
-            Satélite
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onLayerChange("hybrid")}
-            className={currentLayer === "hybrid" ? "bg-accent" : ""}
-            data-testid="layer-hybrid"
-          >
-            Híbrido
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="relative">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="shadow-lg"
+          onClick={() => setIsOpen(!isOpen)}
+          data-testid="button-map-layers"
+        >
+          <Layers className="h-4 w-4 mr-2" />
+          {getLayerLabel(currentLayer)}
+        </Button>
+
+        {isOpen && (
+          <div className="absolute top-full right-0 mt-2 bg-popover border border-border rounded-md shadow-lg overflow-hidden min-w-[140px]">
+            <button
+              onClick={() => handleLayerSelect("standard")}
+              className={`w-full px-4 py-2 text-sm text-left hover-elevate active-elevate-2 ${
+                currentLayer === "standard" ? "bg-accent text-accent-foreground" : ""
+              }`}
+              data-testid="layer-standard"
+            >
+              Padrão
+            </button>
+            <button
+              onClick={() => handleLayerSelect("satellite")}
+              className={`w-full px-4 py-2 text-sm text-left hover-elevate active-elevate-2 ${
+                currentLayer === "satellite" ? "bg-accent text-accent-foreground" : ""
+              }`}
+              data-testid="layer-satellite"
+            >
+              Satélite
+            </button>
+            <button
+              onClick={() => handleLayerSelect("hybrid")}
+              className={`w-full px-4 py-2 text-sm text-left hover-elevate active-elevate-2 ${
+                currentLayer === "hybrid" ? "bg-accent text-accent-foreground" : ""
+              }`}
+              data-testid="layer-hybrid"
+            >
+              Híbrido
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Overlay para fechar o menu ao clicar fora */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[-1]"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
     </div>
   );
 }
