@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 **Layout Pattern**: Full-screen split layout with a collapsible sidebar for filters, scheduling, and data entry, and a map view.
 **State Management**: TanStack Query for server state; component-level state via React hooks.
 **Routing**: Wouter for client-side routing.
-**Map Integration**: Leaflet.js for interactive mapping, including Leaflet.draw for polygon editing. Displays service areas as circular markers (L.circleMarker) with 6-tier color-coded visualization based on 45-day mowing cycles: 5 green shades (#d1fae5 to #10b981) for areas on schedule, plus red (#ef4444) for overdue areas (>45 days). Interactive legend with clickable time-range filters (0-5d, 5-15d, 15-25d, 25-35d, 35-44d, >45d) and custom date picker for targeted area inspection.
+**Map Integration**: Leaflet.js for interactive mapping, including Leaflet.draw for polygon editing. Displays service areas as circular markers (L.circleMarker) with 6-tier **forward-looking forecast-based** color-coded visualization (45-day mowing cycle). Categories based on days **until** next scheduled mowing: (1) "Executando" status with pulsing CSS animation in verde forte #10b981, (2) 0-5 days #10b981, (3) 6-15 days #34d399, (4) 16-25 days #6ee7b7, (5) 26-40 days #a7f3d0, (6) 41-45 days red #ef4444 (cycle end). Interactive legend with **exclusive** clickable category filters (when active, shows ONLY selected category areas) and custom date range picker (from-to dates) for targeted area inspection. CSS animation `marker-pulse` (2s duration, opacity + scale transform) applied to areas in execution status.
 
 ### Backend Architecture
 
