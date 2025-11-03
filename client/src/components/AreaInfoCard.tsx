@@ -10,6 +10,7 @@ import type { ServiceArea } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatDateBR } from "@/lib/utils";
 
 interface AreaInfoCardProps {
   area: ServiceArea;
@@ -160,7 +161,7 @@ export function AreaInfoCard({ area, onClose, onUpdate }: AreaInfoCardProps) {
                 <p className="text-xs text-muted-foreground">Previsão Atual</p>
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium" data-testid="text-previsao">
-                    {new Date(area.scheduledDate).toLocaleDateString('pt-BR')}
+                    {formatDateBR(area.scheduledDate)}
                   </p>
                   <Badge 
                     variant="secondary" 
@@ -180,7 +181,7 @@ export function AreaInfoCard({ area, onClose, onUpdate }: AreaInfoCardProps) {
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Próxima Previsão</p>
                 <p className="text-sm font-medium" data-testid="text-proxima-previsao">
-                  {new Date(area.proximaPrevisao).toLocaleDateString('pt-BR')}
+                  {formatDateBR(area.proximaPrevisao)}
                 </p>
               </div>
             </div>
@@ -192,7 +193,7 @@ export function AreaInfoCard({ area, onClose, onUpdate }: AreaInfoCardProps) {
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Última Roçagem</p>
                 <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400" data-testid="text-ultima-rocagem">
-                  {new Date(area.ultimaRocagem).toLocaleDateString('pt-BR')}
+                  {formatDateBR(area.ultimaRocagem)}
                 </p>
               </div>
             </div>
@@ -275,7 +276,7 @@ export function AreaInfoCard({ area, onClose, onUpdate }: AreaInfoCardProps) {
                   const isForecast = item.type === 'forecast';
                   return (
                     <li key={index} className={isForecast ? "text-blue-600 dark:text-blue-400" : "text-green-600 dark:text-green-400"}>
-                      • {new Date(item.date).toLocaleDateString('pt-BR')} - {isForecast ? 'Previsto para' : 'Concluído em'} {item.status}
+                      • {formatDateBR(item.date)} - {isForecast ? 'Previsto para' : 'Concluído em'} {item.status}
                     </li>
                   );
                 })}

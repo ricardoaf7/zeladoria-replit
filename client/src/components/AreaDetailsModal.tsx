@@ -21,6 +21,7 @@ import type { ServiceArea, Team } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatDateBR } from "@/lib/utils";
 
 interface AreaDetailsModalProps {
   area: ServiceArea;
@@ -155,12 +156,7 @@ export function AreaDetailsModal({ area, teams, onClose }: AreaDetailsModalProps
                   <p className="text-sm">
                     Próxima roçagem estimada em:{" "}
                     <span className="font-semibold" data-testid="text-scheduled-date">
-                      {new Date(area.scheduledDate).toLocaleDateString('pt-BR', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
+                      {formatDateBR(area.scheduledDate)}
                     </span>
                   </p>
                 </div>
@@ -186,7 +182,7 @@ export function AreaDetailsModal({ area, teams, onClose }: AreaDetailsModalProps
                       <div className="flex-1">
                         <p className="font-medium">{item.status}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(item.date).toLocaleDateString('pt-BR')}
+                          {formatDateBR(item.date)}
                         </p>
                         {item.observation && (
                           <p className="text-xs text-muted-foreground mt-1">

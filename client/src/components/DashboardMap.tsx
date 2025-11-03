@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatDateBR } from "@/lib/utils";
 import { MapLayerControl, type MapLayerType } from "./MapLayerControl";
 import type { ServiceArea, Team } from "@shared/schema";
 
@@ -209,8 +210,9 @@ export function DashboardMap({
         circle.bindTooltip(
           `<div class="font-sans text-xs">
             <strong>${area.endereco}</strong><br/>
-            Roçagem de Áreas Públicas<br/>
-            ${area.scheduledDate ? `Previsão: ${new Date(area.scheduledDate).toLocaleDateString('pt-BR')}` : 'Sem previsão'}
+            ${area.metragem_m2 ? `Metragem: ${area.metragem_m2.toLocaleString('pt-BR')} m²<br/>` : ''}
+            ${area.ultimaRocagem ? `Última Roçagem: ${formatDateBR(area.ultimaRocagem)}<br/>` : ''}
+            ${area.proximaPrevisao ? `Previsão: ${formatDateBR(area.proximaPrevisao)}` : 'Sem previsão'}
           </div>`,
           {
             sticky: true,
@@ -223,7 +225,7 @@ export function DashboardMap({
             <strong>${area.endereco}</strong><br/>
             Status: ${area.status}<br/>
             ${area.metragem_m2 ? `Metragem: ${area.metragem_m2.toLocaleString('pt-BR')} m²<br/>` : ''}
-            ${area.scheduledDate ? `Agendado: ${new Date(area.scheduledDate).toLocaleDateString('pt-BR')}` : ''}
+            ${area.scheduledDate ? `Agendado: ${formatDateBR(area.scheduledDate)}` : ''}
           </div>`
         );
 
