@@ -238,7 +238,7 @@ export default function Dashboard() {
               <X className="h-5 w-5" />
             )}
           </Button>
-          <h1 className="text-lg font-semibold">Zeladoria LD</h1>
+          <h1 className="text-lg font-semibold">Zeladoria Londrina</h1>
           <ThemeToggle />
         </header>
         

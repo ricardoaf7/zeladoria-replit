@@ -1,6 +1,6 @@
 {
-  "name": "Zeladoria LD - Londrina",
-  "short_name": "Zeladoria LD",
+  "name": "Zeladoria Londrina",
+  "short_name": "Zeladoria Londrina",
   "description": "Dashboard de Operações em Tempo Real para Zeladoria Urbana de Londrina",
   "start_url": "/",
   "display": "standalone",
