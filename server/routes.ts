@@ -342,6 +342,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/recalculate-schedules", async (req, res) => {
+    console.log("📅 Recalculando agendamentos de todas as áreas");
+    
+    try {
+      const { calculateMowingSchedule } = await import('@shared/schedulingAlgorithm');
+      
+      console.log("📊 Buscando áreas e configurações...");
+      const areas = await storage.getAllAreas('rocagem');
+      const config = await storage.getConfig();
+      
+      console.log(`🔢 Processando ${areas.length} áreas...`);
+      
+      // Calcular para lote 1
+      const lote1Results = calculateMowingSchedule(
+        areas.filter(a => a.lote === 1),
+        1,
+        config.mowingProductionRate.lote1,
+        new Date()
+      );
+      
+      // Calcular para lote 2
+      const lote2Results = calculateMowingSchedule(
+        areas.filter(a => a.lote === 2),
+        2,
+        config.mowingProductionRate.lote2,
+        new Date()
+      );
+      
+      const allResults = [...lote1Results, ...lote2Results];
+      console.log(`✅ ${allResults.length} previsões calculadas`);
+      
+      // Atualizar áreas com as previsões
+      console.log("💾 Salvando previsões no banco...");
+      for (const result of allResults) {
+        await storage.updateArea(result.areaId, {
+          proximaPrevisao: result.proximaPrevisao,
+          daysToComplete: result.daysToComplete
+        });
+      }
+      
+      console.log(`✅ Agendamentos recalculados com sucesso!`);
+      
+      res.json({ 
+        success: true, 
+        message: `✅ Agendamentos recalculados para ${allResults.length} áreas!`,
+        calculated: allResults.length
+      });
+    } catch (error: any) {
+      console.error("💥 ERRO ao recalcular agendamentos:", error);
+      res.status(500).json({ 
+        error: "Falha ao recalcular agendamentos", 
+        details: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
