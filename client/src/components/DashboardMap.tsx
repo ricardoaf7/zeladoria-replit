@@ -185,7 +185,12 @@ export function DashboardMap({
 
       const isSelected = selectedAreaIds.has(area.id);
       const isFiltered = filteredAreaIds ? filteredAreaIds.has(area.id) : true;
-      const opacity = isFiltered ? 1 : 0.2;
+      
+      // Se há filtro ativo e área não está filtrada, não renderizar
+      if (filteredAreaIds && !isFiltered) {
+        return;
+      }
+
       const color = getAreaColor(area, today, isSelected);
       const isPulsing = area.status === "Em Execução";
 
@@ -195,9 +200,9 @@ export function DashboardMap({
           radius: 8,
           color: color,
           fillColor: color,
-          fillOpacity: isFiltered ? 0.6 : 0.2,
+          fillOpacity: 0.6,
           weight: 2,
-          opacity: opacity,
+          opacity: 1,
           className: isPulsing ? "pulsing-marker" : "",
         });
 

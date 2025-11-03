@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   MapPin, 
   Layers, 
@@ -81,7 +81,26 @@ export function AppSidebar({
   const { theme } = useTheme();
   const [activeTimeFilter, setActiveTimeFilter] = useState<TimeRangeFilter>(null);
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const hasAutoAppliedFilter = useRef(false);
   
+  // Aplicar filtro "Executando" automaticamente ao selecionar roçagem (apenas na primeira vez)
+  useEffect(() => {
+    if (selectedService === 'rocagem' && !hasAutoAppliedFilter.current) {
+      setActiveTimeFilter('executing');
+      if (onTimeRangeFilterChange) {
+        onTimeRangeFilterChange('executing', undefined);
+      }
+      hasAutoAppliedFilter.current = true;
+    } else if (selectedService !== 'rocagem') {
+      // Limpar filtro e flag ao desselecionar roçagem
+      setActiveTimeFilter(null);
+      if (onTimeRangeFilterChange) {
+        onTimeRangeFilterChange(null, undefined);
+      }
+      hasAutoAppliedFilter.current = false;
+    }
+  }, [selectedService]);
+
   const handleServiceClick = (service: string) => {
     if (onServiceSelect) {
       // Toggle: se clicar no serviço já selecionado, desseleciona
@@ -185,6 +204,14 @@ export function AppSidebar({
                         className="overflow-hidden"
                       >
                         <div className="mt-3 space-y-3 pl-2">
+                          <MapLegend 
+                            activeFilter={activeTimeFilter}
+                            onFilterChange={handleTimeFilterChange}
+                            customDateRange={customDateRange}
+                            onCustomDateRangeChange={handleCustomDateRangeChange}
+                          />
+                          <Separator className="my-3" />
+
                           {onToggleSelectionMode && !isRegistrationMode && (
                             <>
                               <div className="px-2">
@@ -225,14 +252,6 @@ export function AppSidebar({
                               <Separator className="my-3" />
                             </>
                           )}
-
-                          <MapLegend 
-                            activeFilter={activeTimeFilter}
-                            onFilterChange={handleTimeFilterChange}
-                            customDateRange={customDateRange}
-                            onCustomDateRangeChange={handleCustomDateRangeChange}
-                          />
-                          <Separator className="my-3" />
                         </div>
                       </motion.div>
                     )}
