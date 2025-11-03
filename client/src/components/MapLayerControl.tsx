@@ -29,7 +29,7 @@ export function MapLayerControl({ currentLayer, onLayerChange }: MapLayerControl
   };
 
   return (
-    <div className="absolute top-4 right-4 z-[1000]">
+    <div className="absolute top-4 right-4 z-[2000]">
       <div className="relative">
         <Button
           variant="secondary"
@@ -43,7 +43,7 @@ export function MapLayerControl({ currentLayer, onLayerChange }: MapLayerControl
         </Button>
 
         {isOpen && (
-          <div className="absolute top-full right-0 mt-2 bg-popover border border-border rounded-md shadow-lg overflow-hidden min-w-[140px] z-[1001]">
+          <div className="absolute top-full right-0 mt-2 bg-popover border border-border rounded-md shadow-lg overflow-hidden min-w-[140px] z-[2001]">
             <button
               onClick={() => handleLayerSelect("standard")}
               className={`w-full px-4 py-2 text-sm text-left hover-elevate active-elevate-2 ${
@@ -78,7 +78,7 @@ export function MapLayerControl({ currentLayer, onLayerChange }: MapLayerControl
       {/* Overlay para fechar o menu ao clicar fora */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[999]"
+          className="fixed inset-0 z-[1999]"
           onClick={() => setIsOpen(false)}
         />
       )}

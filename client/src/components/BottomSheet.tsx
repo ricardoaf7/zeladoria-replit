@@ -79,7 +79,7 @@ export function BottomSheet({ children, state, onStateChange }: BottomSheetProps
   return (
     <motion.div
       data-testid="bottom-sheet"
-      className="fixed bottom-0 left-0 right-0 z-40 flex flex-col rounded-t-2xl shadow-2xl border-t border-border overflow-hidden"
+      className="fixed bottom-0 left-0 right-0 z-[1000] flex flex-col rounded-t-2xl shadow-2xl border-t border-border overflow-hidden"
       style={{
         height: sheetHeight,
         backgroundColor,

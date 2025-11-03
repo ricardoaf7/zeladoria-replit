@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { ServiceArea, Team, AppConfig } from "@shared/schema";
 import type { FilterCriteria } from "@/components/FilterPanel";
 import type { TimeRangeFilter } from "@/components/MapLegend";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 import L from "leaflet";
 
 export default function Dashboard() {
@@ -32,9 +34,8 @@ export default function Dashboard() {
 
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
-    if (isMobile && bottomSheetState === "minimized") {
-      setBottomSheetState("medium");
-    }
+    // No mobile, não abrir automaticamente o BottomSheet
+    // Deixar o usuário controlar via botão Menu
   };
 
   const { data: rocagemAreas = [] } = useQuery<ServiceArea[]>({
@@ -216,9 +217,31 @@ export default function Dashboard() {
 
   // Mobile layout com BottomSheet
   if (isMobile) {
+    const toggleBottomSheet = () => {
+      if (bottomSheetState === "minimized") {
+        setBottomSheetState("medium");
+      } else {
+        setBottomSheetState("minimized");
+      }
+    };
+
     return (
       <div className="flex flex-col h-screen w-full">
         <header className="flex items-center justify-between h-14 px-4 border-b border-sidebar-border bg-background z-30">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleBottomSheet}
+            className={bottomSheetState !== "minimized" ? "toggle-elevate toggle-elevated" : ""}
+            aria-label={bottomSheetState === "minimized" ? "Abrir menu" : "Fechar menu"}
+            data-testid="button-mobile-menu"
+          >
+            {bottomSheetState === "minimized" ? (
+              <Menu className="h-5 w-5" />
+            ) : (
+              <X className="h-5 w-5" />
+            )}
+          </Button>
           <h1 className="text-lg font-semibold">Zeladoria LD</h1>
           <ThemeToggle />
         </header>
