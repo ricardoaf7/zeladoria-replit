@@ -306,6 +306,7 @@ export default function Dashboard() {
               onFilterChange={setFilters}
               filteredCount={filteredRocagemAreas.length}
               onTimeRangeFilterChange={handleTimeRangeFilterChange}
+              showQuickRegisterModal={showQuickRegisterModal}
             />
           </BottomSheet>
 
@@ -344,6 +345,7 @@ export default function Dashboard() {
           onFilterChange={setFilters}
           filteredCount={filteredRocagemAreas.length}
           onTimeRangeFilterChange={handleTimeRangeFilterChange}
+          showQuickRegisterModal={showQuickRegisterModal}
         />
         
         <SidebarInset className="flex-1 overflow-hidden">
