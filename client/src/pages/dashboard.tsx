@@ -305,6 +305,7 @@ export default function Dashboard() {
               filteredCount={filteredRocagemAreas.length}
               onTimeRangeFilterChange={handleTimeRangeFilterChange}
               showQuickRegisterModal={showQuickRegisterModal}
+              showMapCard={showMapCard}
             />
           </BottomSheet>
 
@@ -344,6 +345,7 @@ export default function Dashboard() {
           filteredCount={filteredRocagemAreas.length}
           onTimeRangeFilterChange={handleTimeRangeFilterChange}
           showQuickRegisterModal={showQuickRegisterModal}
+          showMapCard={showMapCard}
         />
         
         <SidebarInset className="flex-1 overflow-hidden">
