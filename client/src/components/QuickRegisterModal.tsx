@@ -47,9 +47,16 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
       });
       return await res.json() as ServiceArea;
     },
-    onSuccess: () => {
+    onSuccess: (updatedArea) => {
       queryClient.invalidateQueries({ queryKey: ["/api/areas/rocagem"] });
       queryClient.invalidateQueries({ queryKey: ["/api/areas/jardins"] });
+      
+      // Atualizar área no cache imediatamente para reflexão instantânea na UI
+      queryClient.setQueryData(["/api/areas/rocagem"], (old: ServiceArea[] | undefined) => {
+        if (!old) return old;
+        return old.map(a => a.id === updatedArea.id ? updatedArea : a);
+      });
+      
       toast({
         title: "Roçagem Registrada!",
         description: `Roçagem de ${area?.endereco} registrada com sucesso.`,
