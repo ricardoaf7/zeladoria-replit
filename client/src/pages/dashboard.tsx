@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { DashboardMap } from "@/components/DashboardMap";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MapInfoCard } from "@/components/MapInfoCard";
+import { QuickRegisterModal } from "@/components/QuickRegisterModal";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { BottomSheet, type BottomSheetState } from "@/components/BottomSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,6 +18,8 @@ import L from "leaflet";
 export default function Dashboard() {
   const isMobile = useIsMobile();
   const [selectedArea, setSelectedArea] = useState<ServiceArea | null>(null);
+  const [showMapCard, setShowMapCard] = useState(false);
+  const [showQuickRegisterModal, setShowQuickRegisterModal] = useState(false);
   const [selectedService, setSelectedService] = useState<string>('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [isRegistrationMode, setIsRegistrationMode] = useState(false);
@@ -176,6 +180,25 @@ export default function Dashboard() {
       });
     } else {
       setSelectedArea(area);
+      setShowMapCard(true); // Mostrar card flutuante no mapa
+    }
+  };
+
+  const handleCloseMapCard = () => {
+    setShowMapCard(false);
+    setSelectedArea(null);
+  };
+
+  const handleOpenQuickRegister = () => {
+    setShowMapCard(false);
+    setShowQuickRegisterModal(true);
+  };
+
+  const handleViewDetails = () => {
+    setShowMapCard(false);
+    // Abrir sidebar com detalhes completos (comportamento antigo)
+    if (isMobile) {
+      setBottomSheetState("medium");
     }
   };
 
@@ -257,6 +280,18 @@ export default function Dashboard() {
             selectionMode={selectionMode}
             selectedAreaIds={selectedAreaIds}
           />
+
+          {/* Card flutuante no mapa */}
+          {showMapCard && selectedArea && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
+              <MapInfoCard
+                area={selectedArea}
+                onClose={handleCloseMapCard}
+                onRegisterMowing={handleOpenQuickRegister}
+                onViewDetails={handleViewDetails}
+              />
+            </div>
+          )}
           
           <BottomSheet 
             state={bottomSheetState}
@@ -282,6 +317,13 @@ export default function Dashboard() {
               onTimeRangeFilterChange={handleTimeRangeFilterChange}
             />
           </BottomSheet>
+
+          {/* Modal de registro rápido */}
+          <QuickRegisterModal
+            area={selectedArea}
+            open={showQuickRegisterModal}
+            onOpenChange={setShowQuickRegisterModal}
+          />
         </main>
       </div>
     );
@@ -318,7 +360,7 @@ export default function Dashboard() {
             <SidebarTrigger data-testid="button-sidebar-toggle" />
             <ThemeToggle />
           </header>
-          <main className="h-[calc(100vh-3.5rem)] overflow-hidden">
+          <main className="h-[calc(100vh-3.5rem)] overflow-hidden relative">
             <DashboardMap
               rocagemAreas={rocagemAreas}
               jardinsAreas={jardinsAreas}
@@ -333,9 +375,28 @@ export default function Dashboard() {
               selectionMode={selectionMode}
               selectedAreaIds={selectedAreaIds}
             />
+
+            {/* Card flutuante no mapa */}
+            {showMapCard && selectedArea && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
+                <MapInfoCard
+                  area={selectedArea}
+                  onClose={handleCloseMapCard}
+                  onRegisterMowing={handleOpenQuickRegister}
+                  onViewDetails={handleViewDetails}
+                />
+              </div>
+            )}
           </main>
         </SidebarInset>
       </div>
+
+      {/* Modal de registro rápido */}
+      <QuickRegisterModal
+        area={selectedArea}
+        open={showQuickRegisterModal}
+        onOpenChange={setShowQuickRegisterModal}
+      />
     </SidebarProvider>
   );
 }
