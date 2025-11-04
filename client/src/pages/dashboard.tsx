@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MapInfoCard } from "@/components/MapInfoCard";
 import { QuickRegisterModal } from "@/components/QuickRegisterModal";
+import { MapHeaderBar } from "@/components/MapHeaderBar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { BottomSheet, type BottomSheetState } from "@/components/BottomSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -266,6 +267,18 @@ export default function Dashboard() {
           <h1 className="text-lg font-semibold">Zeladoria Londrina</h1>
           <ThemeToggle />
         </header>
+
+        {/* Barra de busca e filtros - aparece só quando serviço selecionado */}
+        {selectedService === 'rocagem' && (
+          <MapHeaderBar
+            searchQuery={filters.search}
+            onSearchChange={(query) => setFilters({ ...filters, search: query })}
+            activeFilter={timeRangeFilter}
+            onFilterChange={handleTimeRangeFilterChange}
+            filteredCount={filteredRocagemAreas.length}
+            totalCount={rocagemAreas.length}
+          />
+        )}
         
         <main className="flex-1 overflow-hidden relative">
           <DashboardMap
@@ -360,12 +373,25 @@ export default function Dashboard() {
           showMapCard={showMapCard}
         />
         
-        <SidebarInset className="flex-1 overflow-hidden">
+        <SidebarInset className="flex-1 overflow-hidden flex flex-col">
           <header className="flex items-center justify-between h-14 px-4 border-b border-sidebar-border">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
             <ThemeToggle />
           </header>
-          <main className="h-[calc(100vh-3.5rem)] overflow-hidden relative">
+
+          {/* Barra de busca e filtros - aparece só quando serviço selecionado */}
+          {selectedService === 'rocagem' && (
+            <MapHeaderBar
+              searchQuery={filters.search}
+              onSearchChange={(query) => setFilters({ ...filters, search: query })}
+              activeFilter={timeRangeFilter}
+              onFilterChange={handleTimeRangeFilterChange}
+              filteredCount={filteredRocagemAreas.length}
+              totalCount={rocagemAreas.length}
+            />
+          )}
+
+          <main className="flex-1 overflow-hidden relative">
             <DashboardMap
               rocagemAreas={rocagemAreas}
               jardinsAreas={jardinsAreas}

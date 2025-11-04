@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/button";
 import { AreaInfoCard } from "./AreaInfoCard";
 import { DailyRegistrationPanel } from "./DailyRegistrationPanel";
 import { FilterPanel, type FilterCriteria } from "./FilterPanel";
-import { MapLegend, type TimeRangeFilter } from "./MapLegend";
+import { type TimeRangeFilter } from "./MapLegend";
 import { Separator } from "@/components/ui/separator";
 import type { ServiceArea } from "@shared/schema";
 
@@ -208,14 +208,6 @@ export function AppSidebar({
                         className="overflow-hidden"
                       >
                         <div className="mt-3 space-y-3 pl-2">
-                          <MapLegend 
-                            activeFilter={activeTimeFilter}
-                            onFilterChange={handleTimeFilterChange}
-                            customDateRange={customDateRange}
-                            onCustomDateRangeChange={handleCustomDateRangeChange}
-                          />
-                          <Separator className="my-3" />
-
                           {onToggleSelectionMode && !isRegistrationMode && (
                             <>
                               <div className="px-2">
