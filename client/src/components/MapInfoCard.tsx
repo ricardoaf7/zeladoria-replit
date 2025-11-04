@@ -1,7 +1,9 @@
-import { X, Calendar, MapPin, Ruler, CheckCircle2, Info } from "lucide-react";
+import { useState } from "react";
+import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import type { ServiceArea } from "@shared/schema";
 import { formatDateBR } from "@/lib/utils";
 
@@ -9,10 +11,10 @@ interface MapInfoCardProps {
   area: ServiceArea;
   onClose: () => void;
   onRegisterMowing: () => void;
-  onViewDetails: () => void;
 }
 
-export function MapInfoCard({ area, onClose, onRegisterMowing, onViewDetails }: MapInfoCardProps) {
+export function MapInfoCard({ area, onClose, onRegisterMowing }: MapInfoCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const getDaysUntilMowing = (): number | null => {
     if (!area.proximaPrevisao) return null;
     const today = new Date();
@@ -28,7 +30,7 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onViewDetails }: 
   const isExecuting = area.status === "Em Execução";
 
   return (
-    <Card className="w-80 shadow-lg border-2" data-testid="map-info-card">
+    <Card className="w-80 shadow-lg border-2 max-h-[calc(100vh-120px)] overflow-y-auto" data-testid="map-info-card">
       <CardContent className="p-4">
         {/* Header com botão fechar */}
         <div className="flex items-start justify-between mb-3">
@@ -96,6 +98,62 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onViewDetails }: 
           )}
         </div>
 
+        {/* Seção expandível com mais detalhes */}
+        {isExpanded && (
+          <>
+            <Separator className="mb-4" />
+            
+            <div className="space-y-3 mb-4">
+              <h4 className="font-semibold text-xs uppercase text-muted-foreground">
+                Detalhes Adicionais
+              </h4>
+              
+              {area.lote && (
+                <div className="flex items-center gap-2 text-xs">
+                  <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-muted-foreground">Lote:</span>
+                  <span className="font-medium" data-testid="text-lote">
+                    {area.lote}
+                  </span>
+                </div>
+              )}
+              
+              {area.tipo && (
+                <div className="flex items-center gap-2 text-xs">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-muted-foreground">Tipo:</span>
+                  <span className="font-medium capitalize" data-testid="text-tipo">
+                    {area.tipo}
+                  </span>
+                </div>
+              )}
+
+              {area.history && area.history.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="font-semibold text-xs text-muted-foreground">Histórico Recente</h5>
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {area.history.slice(-5).reverse().map((entry, idx) => (
+                      <div key={idx} className="text-xs p-2 bg-muted/30 rounded">
+                        <div className="flex justify-between items-start">
+                          <span className="font-medium">{formatDateBR(entry.date)}</span>
+                          <Badge variant="outline" className="text-[10px] h-4 px-1">
+                            {entry.status}
+                          </Badge>
+                        </div>
+                        {entry.observation && (
+                          <p className="text-muted-foreground mt-1 text-[11px]">
+                            {entry.observation}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
         {/* Botões de ação */}
         <div className="flex flex-col gap-2">
           <Button
@@ -109,12 +167,21 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onViewDetails }: 
           
           <Button
             variant="outline"
-            onClick={onViewDetails}
+            onClick={() => setIsExpanded(!isExpanded)}
             className="w-full h-8"
             data-testid="button-view-details"
           >
-            <Info className="h-3.5 w-3.5 mr-2" />
-            Ver Detalhes Completos
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3.5 w-3.5 mr-2" />
+                Ocultar Detalhes
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3.5 w-3.5 mr-2" />
+                Ver Detalhes Completos
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

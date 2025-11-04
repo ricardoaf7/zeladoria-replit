@@ -194,14 +194,6 @@ export default function Dashboard() {
     setShowQuickRegisterModal(true);
   };
 
-  const handleViewDetails = () => {
-    setShowMapCard(false);
-    // Abrir sidebar com detalhes completos (comportamento antigo)
-    if (isMobile) {
-      setBottomSheetState("medium");
-    }
-  };
-
   const handleAreaUpdate = (updatedArea: ServiceArea) => {
     setSelectedArea(updatedArea);
   };
@@ -288,7 +280,6 @@ export default function Dashboard() {
                 area={selectedArea}
                 onClose={handleCloseMapCard}
                 onRegisterMowing={handleOpenQuickRegister}
-                onViewDetails={handleViewDetails}
               />
             </div>
           )}
@@ -383,7 +374,6 @@ export default function Dashboard() {
                   area={selectedArea}
                   onClose={handleCloseMapCard}
                   onRegisterMowing={handleOpenQuickRegister}
-                  onViewDetails={handleViewDetails}
                 />
               </div>
             )}
