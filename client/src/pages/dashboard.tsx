@@ -312,6 +312,7 @@ export default function Dashboard() {
             mapRef={mapRef}
             selectionMode={selectionMode}
             selectedAreaIds={selectedAreaIds}
+            searchQuery={filters.search}
           />
 
           {/* Card flutuante no mapa */}
@@ -422,6 +423,7 @@ export default function Dashboard() {
               }}
               onAreaClick={handleAreaClick}
               filteredAreaIds={hasActiveFilters ? new Set(filteredRocagemAreas.map(a => a.id)) : undefined}
+              searchQuery={filters.search}
               mapRef={mapRef}
               selectionMode={selectionMode}
               selectedAreaIds={selectedAreaIds}
