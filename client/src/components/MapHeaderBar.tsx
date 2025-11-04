@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,7 @@ export function MapHeaderBar({
 }: MapHeaderBarProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [dropdownPosition, setDropdownPosition] = useState<{top: number; left: number; width: number} | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +83,15 @@ export function MapHeaderBar({
         );
       }).slice(0, 8) // Mostrar no máximo 8 sugestões
     : [];
+
+  // Debug logs
+  console.log('[MapHeaderBar] Debug:', {
+    searchQuery,
+    areasLength: areas.length,
+    suggestionsLength: suggestions.length,
+    showSuggestions,
+    searchTrimLength: searchQuery.trim().length
+  });
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
@@ -103,6 +114,20 @@ export function MapHeaderBar({
     setShowSuggestions(searchQuery.trim().length > 0 && suggestions.length > 0);
     setSelectedIndex(-1);
   }, [searchQuery, suggestions.length]);
+
+  // Calcular posição do dropdown
+  useEffect(() => {
+    if (showSuggestions && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4, // 4px de margem
+        left: rect.left,
+        width: rect.width
+      });
+    } else {
+      setDropdownPosition(null);
+    }
+  }, [showSuggestions]);
 
   const handleFilterClick = (filter: TimeRangeFilter) => {
     onFilterChange(activeFilter === filter ? null : filter);
@@ -179,11 +204,16 @@ export function MapHeaderBar({
             </button>
           )}
 
-          {/* Dropdown de sugestões */}
-          {showSuggestions && (
+          {/* Dropdown de sugestões - Renderizado via Portal */}
+          {showSuggestions && dropdownPosition && typeof document !== 'undefined' && createPortal(
             <div 
               ref={dropdownRef}
-              className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto"
+              className="fixed bg-popover border border-border rounded-md shadow-2xl z-[1200] max-h-96 overflow-y-auto"
+              style={{
+                top: `${dropdownPosition.top}px`,
+                left: `${dropdownPosition.left}px`,
+                width: `${dropdownPosition.width}px`,
+              }}
               data-testid="autocomplete-dropdown"
             >
               {suggestions.map((area, index) => (
@@ -218,7 +248,8 @@ export function MapHeaderBar({
                   </div>
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
         
