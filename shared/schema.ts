@@ -29,6 +29,8 @@ export const serviceAreaSchema = z.object({
   manualSchedule: z.boolean().optional().default(false),
   daysToComplete: z.number().optional(),
   servico: z.string().optional(),
+  registradoPor: z.string().nullable().optional(),
+  dataRegistro: z.string().nullable().optional(),
 });
 
 export type ServiceArea = z.infer<typeof serviceAreaSchema>;

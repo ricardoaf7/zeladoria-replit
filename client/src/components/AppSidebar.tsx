@@ -13,8 +13,7 @@ import {
   Recycle,
   Sparkles,
   Wind,
-  Package,
-  CheckSquare
+  Package
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import operacoesLogoPositivo from "@assets/Operacoes_Logo_Positivo_1762027620245.png";
@@ -31,10 +30,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 import { AreaInfoCard } from "./AreaInfoCard";
-import { DailyRegistrationPanel } from "./DailyRegistrationPanel";
-import { FilterPanel, type FilterCriteria } from "./FilterPanel";
 import { type TimeRangeFilter } from "./MapLegend";
 import { Separator } from "@/components/ui/separator";
 import type { ServiceArea } from "@shared/schema";
@@ -52,9 +48,6 @@ interface AppSidebarProps {
   selectedAreaIds?: Set<number>;
   onClearSelection?: () => void;
   rocagemAreas?: ServiceArea[];
-  filters?: FilterCriteria;
-  onFilterChange?: (filters: FilterCriteria) => void;
-  filteredCount?: number;
   standalone?: boolean;
   onTimeRangeFilterChange?: (filter: TimeRangeFilter, customDateRange?: { from: Date | undefined; to: Date | undefined }) => void;
   showQuickRegisterModal?: boolean;
@@ -74,9 +67,6 @@ export function AppSidebar({
   selectedAreaIds = new Set(),
   onClearSelection,
   rocagemAreas = [],
-  filters,
-  onFilterChange,
-  filteredCount = 0,
   standalone = false,
   onTimeRangeFilterChange,
   showQuickRegisterModal = false,
@@ -198,48 +188,8 @@ export function AppSidebar({
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-3 space-y-3 pl-2">
-                          {onToggleSelectionMode && !isRegistrationMode && (
-                            <>
-                              <div className="px-2">
-                                <Button
-                                  variant={selectionMode ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={onToggleSelectionMode}
-                                  data-testid="button-toggle-selection"
-                                  className="w-full"
-                                >
-                                  <CheckSquare className="h-4 w-4 mr-1.5" />
-                                  {selectionMode ? "Selecionando" : "Selecionar"}
-                                </Button>
-                              </div>
-                              <Separator className="my-3" />
-                            </>
-                          )}
-
-                          {filters && onFilterChange && (
-                            <>
-                              <FilterPanel
-                                areas={rocagemAreas}
-                                filters={filters}
-                                onFilterChange={onFilterChange}
-                                filteredCount={filteredCount}
-                              />
-                              <Separator className="my-3" />
-                            </>
-                          )}
-
-                          {onRegistrationModeChange && (
-                            <>
-                              <DailyRegistrationPanel
-                                selectedAreas={Array.from(selectedAreaIds)}
-                                onModeChange={onRegistrationModeChange}
-                                onClearSelection={onClearSelection!}
-                              />
-                              <Separator className="my-3" />
-                            </>
-                          )}
-                        </div>
+                        {/* Conteúdo removido: botão Selecionar, Filtros e Registro Diário */}
+                        {/* Workflow principal: clicar no marcador → card flutuante → registrar */}
                       </motion.div>
                     )}
                   </AnimatePresence>

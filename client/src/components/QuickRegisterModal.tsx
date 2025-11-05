@@ -30,12 +30,14 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
   const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [inputValue, setInputValue] = useState<string>("");
+  const [operatorName, setOperatorName] = useState<string>("");
 
   // Resetar data para hoje quando modal fechar
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setDate(new Date()); // Reset para hoje ao fechar
       setInputValue(""); // Limpar input
+      setOperatorName(""); // Limpar nome do operador
     }
     onOpenChange(newOpen);
   };
@@ -87,12 +89,13 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
   };
 
   const registerMowingMutation = useMutation({
-    mutationFn: async (data: { date: string }): Promise<ServiceArea> => {
+    mutationFn: async (data: { date: string; operatorName: string }): Promise<ServiceArea> => {
       if (!area) throw new Error("Área não selecionada");
       
       const res = await apiRequest("PATCH", `/api/areas/${area.id}`, {
         ultimaRocagem: data.date,
         status: "Pendente",
+        registradoPor: data.operatorName,
       });
       return await res.json() as ServiceArea;
     },
@@ -122,8 +125,17 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
   });
 
   const handleConfirm = () => {
+    if (!operatorName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Nome Obrigatório",
+        description: "Por favor, informe o nome do operador.",
+      });
+      return;
+    }
+    
     const dateStr = format(date, "yyyy-MM-dd");
-    registerMowingMutation.mutate({ date: dateStr });
+    registerMowingMutation.mutate({ date: dateStr, operatorName: operatorName.trim() });
   };
 
   if (!area) return null;
@@ -139,6 +151,19 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="operator-name">Nome do Operador *</Label>
+            <Input
+              id="operator-name"
+              type="text"
+              placeholder="Ex: João Silva"
+              value={operatorName}
+              onChange={(e) => setOperatorName(e.target.value)}
+              data-testid="input-operator-name"
+              autoFocus
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="date-input">Data da Roçagem</Label>
             

@@ -13,11 +13,13 @@ import type { ServiceArea, AppConfig } from "@shared/schema";
 import type { FilterCriteria } from "@/components/FilterPanel";
 import type { TimeRangeFilter } from "@/components/MapLegend";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import L from "leaflet";
 
 export default function Dashboard() {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [selectedArea, setSelectedArea] = useState<ServiceArea | null>(null);
   const [showMapCard, setShowMapCard] = useState(false);
   const [showQuickRegisterModal, setShowQuickRegisterModal] = useState(false);
@@ -41,6 +43,34 @@ export default function Dashboard() {
     setSelectedService(service);
     // No mobile, não abrir automaticamente o BottomSheet
     // Deixar o usuário controlar via botão Menu
+  };
+
+  const handleBackupDownload = async () => {
+    try {
+      const response = await fetch('/api/backup');
+      if (!response.ok) throw new Error('Falha ao gerar backup');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `zeladoria_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Backup Gerado!",
+        description: "Arquivo de backup baixado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro no Backup",
+        description: "Não foi possível gerar o backup. Tente novamente.",
+      });
+    }
   };
 
   // State para bounds do viewport
@@ -310,7 +340,18 @@ export default function Dashboard() {
             )}
           </Button>
           <h1 className="text-lg font-semibold">Zeladoria Londrina</h1>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBackupDownload}
+              aria-label="Exportar backup"
+              data-testid="button-backup"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* Barra de busca e filtros - aparece só quando serviço selecionado */}
@@ -375,9 +416,6 @@ export default function Dashboard() {
               selectedAreaIds={selectedAreaIds}
               onClearSelection={handleClearSelection}
               rocagemAreas={rocagemAreas}
-              filters={filters}
-              onFilterChange={setFilters}
-              filteredCount={filteredRocagemAreas.length}
               onTimeRangeFilterChange={handleTimeRangeFilterChange}
               showQuickRegisterModal={showQuickRegisterModal}
               showMapCard={showMapCard}
@@ -415,9 +453,6 @@ export default function Dashboard() {
           selectedAreaIds={selectedAreaIds}
           onClearSelection={handleClearSelection}
           rocagemAreas={rocagemAreas}
-          filters={filters}
-          onFilterChange={setFilters}
-          filteredCount={filteredRocagemAreas.length}
           onTimeRangeFilterChange={handleTimeRangeFilterChange}
           showQuickRegisterModal={showQuickRegisterModal}
           showMapCard={showMapCard}
@@ -426,7 +461,18 @@ export default function Dashboard() {
         <SidebarInset className="flex-1 overflow-hidden flex flex-col">
           <header className="flex items-center justify-between h-14 px-4 border-b border-sidebar-border">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleBackupDownload}
+                aria-label="Exportar backup"
+                data-testid="button-backup"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              <ThemeToggle />
+            </div>
           </header>
 
           {/* Barra de busca e filtros - aparece só quando serviço selecionado */}

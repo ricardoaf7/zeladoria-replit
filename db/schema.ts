@@ -20,6 +20,8 @@ export const serviceAreas = pgTable("service_areas", {
   manualSchedule: boolean("manual_schedule").default(false),
   daysToComplete: integer("days_to_complete"),
   servico: text("servico"),
+  registradoPor: text("registrado_por"),
+  dataRegistro: timestamp("data_registro"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

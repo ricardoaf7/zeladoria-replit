@@ -12,6 +12,34 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Endpoint de backup: exportar todos os dados em JSON
+  app.get("/api/backup", async (req, res) => {
+    try {
+      const allAreas = await storage.getAllAreas("rocagem");
+      const config = await storage.getConfig();
+      
+      const backup = {
+        version: "1.0",
+        exportDate: new Date().toISOString(),
+        data: {
+          areas: allAreas,
+          config: config,
+        },
+        stats: {
+          totalAreas: allAreas.length,
+          areasWithMowing: allAreas.filter(a => a.ultimaRocagem).length,
+        }
+      };
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=zeladoria_backup_${new Date().toISOString().split('T')[0]}.json`);
+      res.json(backup);
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ error: "Falha ao gerar backup" });
+    }
+  });
+
   app.get("/api/admin/download-csv", async (req, res) => {
     try {
       const csvPath = path.join(process.cwd(), "server", "data", "areas_londrina.csv");
@@ -290,20 +318,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lote: z.number().optional(),
         ultimaRocagem: z.string().optional(),
         status: z.enum(["Pendente", "Em Execução", "Concluído"]).optional(),
+        registradoPor: z.string().optional(),
       });
 
       const data = updateSchema.parse(req.body);
       
-      // Aplicar atualizações de campos primeiro (status, lote, etc.)
-      const updatedArea = await storage.updateArea(areaId, data);
-      
-      if (!updatedArea) {
-        res.status(404).json({ error: "Area not found" });
-        return;
-      }
-      
-      // Se ultimaRocagem foi atualizado, recalcular previsões de todo o lote
-      if (data.ultimaRocagem) {
+      // Se está registrando roçagem, adicionar timestamp automático
+      if (data.ultimaRocagem && data.registradoPor) {
+        const dataComTimestamp = {
+          ...data,
+          dataRegistro: new Date().toISOString(),
+        };
+        
+        // Aplicar atualizações incluindo auditoria
+        const updatedArea = await storage.updateArea(areaId, dataComTimestamp);
+        
+        if (!updatedArea) {
+          res.status(404).json({ error: "Area not found" });
+          return;
+        }
+        
+        // Recalcular previsões de todo o lote
         await storage.registerDailyMowing([areaId], data.ultimaRocagem, 'completed');
         
         // Buscar área novamente após recálculo
@@ -314,6 +349,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         res.json(reloadedArea);
+        return;
+      }
+      
+      // Atualizações sem registro de roçagem
+      const updatedArea = await storage.updateArea(areaId, data);
+      
+      if (!updatedArea) {
+        res.status(404).json({ error: "Area not found" });
         return;
       }
 
@@ -381,76 +424,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/import-data", async (req, res) => {
-    console.log("📥 Recebida requisição de importação");
-    
-    try {
-      const ADMIN_PASSWORD = process.env.ADMIN_IMPORT_PASSWORD || "cmtu2025";
-      const password = req.body.password;
-      
-      console.log("🔐 Validando senha...");
-      if (!password || password !== ADMIN_PASSWORD) {
-        console.log("❌ Senha incorreta");
-        res.status(401).json({ error: "Senha incorreta" });
-        return;
-      }
-      console.log("✅ Senha correta");
-      
-      console.log("🔄 Importando módulo...");
-      const { importRealData } = await import("../db/import-helper.js");
-      
-      console.log("🚀 Iniciando importação do arquivo server/data/areas_londrina.csv...");
-      const result = await importRealData();
-      console.log(`✅ Importação concluída: ${result.inserted} inseridas, ${result.skipped} ignoradas`);
-      
-      res.json({ 
-        success: true, 
-        message: `✅ ${result.inserted} áreas importadas com sucesso!`,
-        inserted: result.inserted,
-        skipped: result.skipped
-      });
-    } catch (error: any) {
-      console.error("💥 ERRO na importação:", error);
-      console.error("Stack trace:", error.stack);
-      res.status(500).json({ 
-        error: "Falha ao importar dados", 
-        details: error.message,
-        stack: error.stack
-      });
-    }
-  });
-
-  app.post("/api/admin/clear-simulation", async (req, res) => {
-    console.log("🧹 Recebida requisição para limpar dados simulados");
-    
-    try {
-      const ADMIN_PASSWORD = process.env.ADMIN_IMPORT_PASSWORD || "cmtu2025";
-      const password = req.body.password;
-      
-      if (!password || password !== ADMIN_PASSWORD) {
-        console.log("❌ Senha incorreta");
-        res.status(401).json({ error: "Senha incorreta" });
-        return;
-      }
-      
-      console.log("🔄 Limpando histórico de todas as áreas...");
-      const cleared = await storage.clearSimulationData('rocagem');
-      
-      console.log(`✅ ${cleared} áreas limpas`);
-      
-      res.json({ 
-        success: true, 
-        message: `✅ Dados simulados removidos de ${cleared} áreas!`,
-        cleared
-      });
-    } catch (error: any) {
-      console.error("💥 ERRO ao limpar dados:", error);
-      res.status(500).json({ 
-        error: "Falha ao limpar dados simulados", 
-        details: error.message
-      });
-    }
-  });
+  // ROTAS ADMIN PERIGOSAS REMOVIDAS:
+  // - POST /api/admin/import-data (risco de sobrescrever dados existentes)
+  // - POST /api/admin/clear-simulation (apaga todos os registros de roçagem)
 
   app.post("/api/admin/recalculate-schedules", async (req, res) => {
     console.log("📅 Recalculando agendamentos de todas as áreas");
