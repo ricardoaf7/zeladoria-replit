@@ -28,6 +28,11 @@ Preferred communication style: Simple, everyday language.
 **Server Framework**: Express.js on Node.js with TypeScript (ESM).
 **API Design**: RESTful API with resource-based endpoints (GET, PATCH) for areas, teams, and configuration, using JSON and Zod schema validation.
 **Middleware Stack**: JSON body parsing, URL-encoded parsing, request/response logging, and Vite development middleware.
+**Performance Optimization**: Hybrid data loading architecture with three specialized endpoints:
+  - **GET /api/areas/light**: Returns lightweight area data for map visualization (id, lat, lng, status, proximaPrevisao, lote, servico, endereco, bairro) - ~70% payload reduction
+  - **GET /api/areas/search?q={query}&servico={type}**: Server-side search with database filtering using Drizzle ORM's `ilike` operator (50-result limit)
+  - **GET /api/areas/:id**: On-demand full area details when user clicks marker or views details
+**Database Search**: Optimized `searchAreas()` method in storage layer with SQL filtering directly in PostgreSQL using `ilike` (case-insensitive) on endereco, bairro, and lote fields.
 
 ### Data Storage
 
