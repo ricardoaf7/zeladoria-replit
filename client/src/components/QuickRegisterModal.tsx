@@ -48,7 +48,7 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
     }
   };
 
-  // Processar entrada manual de data
+  // Processar entrada manual de data - mantém texto do usuário
   const handleInputChange = (value: string) => {
     setInputValue(value);
     
@@ -60,8 +60,29 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
           setDate(parsedDate);
         }
       } catch (e) {
-        // Ignora erro de parse
+        // Ignora erro de parse, mantém texto do usuário
       }
+    }
+  };
+
+  // Quando input perde foco, formatar ou resetar
+  const handleInputBlur = () => {
+    if (!inputValue) {
+      setInputValue(format(date, "dd/MM/yyyy"));
+      return;
+    }
+    
+    try {
+      const parsedDate = parse(inputValue, "dd/MM/yyyy", new Date());
+      if (!isNaN(parsedDate.getTime())) {
+        setDate(parsedDate);
+        setInputValue(format(parsedDate, "dd/MM/yyyy"));
+      } else {
+        // Data inválida, resetar para data atual
+        setInputValue(format(date, "dd/MM/yyyy"));
+      }
+    } catch (e) {
+      setInputValue(format(date, "dd/MM/yyyy"));
     }
   };
 
@@ -127,8 +148,14 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
                 id="date-input"
                 type="text"
                 placeholder="dd/mm/aaaa"
-                value={inputValue || format(date, "dd/MM/yyyy")}
+                value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
+                onBlur={handleInputBlur}
+                onFocus={() => {
+                  if (!inputValue) {
+                    setInputValue(format(date, "dd/MM/yyyy"));
+                  }
+                }}
                 className="pr-10"
                 data-testid="input-date-manual"
               />

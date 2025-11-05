@@ -11,24 +11,35 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  captionLayout,
   ...props
 }: CalendarProps) {
+  // Ajustar classes baseado no captionLayout
+  const isDropdownLayout = captionLayout === "dropdown" || captionLayout === "dropdown-buttons";
+  
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      captionLayout={captionLayout}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        caption: isDropdownLayout 
+          ? "flex justify-center pt-1 relative items-center gap-1"
+          : "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
+        caption_dropdowns: "flex gap-1",
+        dropdown: "border border-input bg-background px-3 py-2 text-sm rounded-md",
+        dropdown_month: "mr-1",
+        dropdown_year: "",
+        nav: isDropdownLayout ? "flex items-center" : "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
+        nav_button_previous: isDropdownLayout ? "order-first" : "absolute left-1",
+        nav_button_next: isDropdownLayout ? "order-last" : "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
