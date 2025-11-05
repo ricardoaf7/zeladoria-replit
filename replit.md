@@ -30,7 +30,7 @@ Preferred communication style: Simple, everyday language.
 **API Design**: RESTful API with resource-based endpoints (GET, PATCH) for areas, teams, and configuration, using JSON and Zod schema validation.
 **Middleware Stack**: JSON body parsing, URL-encoded parsing, request/response logging, and Vite development middleware.
 **Performance Optimization**: Hybrid data loading architecture with three specialized endpoints:
-  - **GET /api/areas/light**: Returns lightweight area data for map visualization (id, lat, lng, status, proximaPrevisao, lote, servico, endereco, bairro) - ~70% payload reduction
+  - **GET /api/areas/light**: Returns lightweight area data for map visualization (id, lat, lng, status, proximaPrevisao, lote, servico, endereco, bairro) - ~70% payload reduction. Returns ALL areas in database without viewport bounds filtering (1128 areas currently). Dashboard loads complete dataset on initial render for instant filtering/search without additional API calls.
   - **GET /api/areas/search?q={query}&servico={type}**: Server-side search with database filtering using Drizzle ORM's `ilike` operator (50-result limit)
   - **GET /api/areas/:id**: On-demand full area details when user clicks marker or views details
 **Database Search**: Optimized `searchAreas()` method in storage layer with SQL filtering directly in PostgreSQL using `ilike` (case-insensitive) on endereco, bairro, and lote fields.
@@ -45,6 +45,7 @@ Preferred communication style: Simple, everyday language.
 **Scheduling Algorithm**: Calculates mowing schedules based on business days, area size, and production rates, respecting manual scheduling flags.
 **Persistence Layer**: Drizzle ORM with PostgreSQL dialect and Neon serverless driver, utilizing JSONB columns and automatic timestamping.
 **Migration & Seeding**: Drizzle Kit for schema migrations; `db/seed.ts` for initial data population. Initial service_areas table created via manual SQL due to Drizzle push limitations.
+**Production Data Import**: Script `db/import-areas.ts` imports real service areas from CSV files, handling Brazilian number formats (comma decimals, dot thousands), coordinate conversion, automatic 45-day forecast calculation based on lote productivity rates, and batch insertion (100 areas per batch) to avoid timeouts. Currently loaded: 1128 total areas (1125 production + 3 test areas) - Lote 1: 581 areas (avg 5581 m²), Lote 2: 547 areas (avg 4955 m²). Script preserves existing records and validates coordinates before insertion.
 **Admin Utilities**: GET `/api/admin/download-csv` (download original CSV), POST `/api/admin/recalculate-schedules` (recalculate mowing forecasts without data loss). Dangerous bulk import and data-clearing endpoints have been permanently removed to prevent accidental production data deletion.
 
 ## External Dependencies
