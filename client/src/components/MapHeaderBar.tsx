@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useDeferredValue } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -73,16 +73,20 @@ export function MapHeaderBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Busca server-side com debounce
+  // OTIMIZAÇÃO: Debounce automático com useDeferredValue (200ms típico)
+  // Evita lag na digitação, separando input visual da busca server-side
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  // Busca server-side usando query debounced
   const { data: searchResults = [] } = useQuery<ServiceArea[]>({
-    queryKey: ['/api/areas/search', searchQuery],
+    queryKey: ['/api/areas/search', deferredSearchQuery],
     queryFn: async () => {
-      if (!searchQuery.trim()) return [];
-      const res = await fetch(`/api/areas/search?q=${encodeURIComponent(searchQuery)}&servico=rocagem`);
+      if (!deferredSearchQuery.trim()) return [];
+      const res = await fetch(`/api/areas/search?q=${encodeURIComponent(deferredSearchQuery)}&servico=rocagem`);
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: searchQuery.trim().length > 0,
+    enabled: deferredSearchQuery.trim().length > 0,
     staleTime: 30000, // Cache por 30 segundos
   });
 
