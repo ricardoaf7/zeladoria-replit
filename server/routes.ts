@@ -484,6 +484,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/import-production", async (req, res) => {
+    try {
+      console.log("🚀 Iniciando importação de dados para produção...");
+      
+      // 1. Verificar se já existem dados no banco
+      const existingAreas = await storage.getAllAreas('rocagem');
+      console.log(`📊 Áreas existentes no banco: ${existingAreas.length}`);
+      
+      if (existingAreas.length > 500) {
+        console.log("⚠️ Banco já contém muitos dados. Abortando importação.");
+        res.status(400).json({ 
+          error: "O banco já contém dados. Importação bloqueada para evitar duplicação.",
+          existingAreas: existingAreas.length,
+          recommendation: "Se deseja reimportar, limpe o banco primeiro."
+        });
+        return;
+      }
+      
+      // 2. Ler arquivo CSV
+      const csvPath = path.join(process.cwd(), "server", "data", "areas_londrina.csv");
+      
+      if (!fs.existsSync(csvPath)) {
+        console.log("❌ Arquivo CSV não encontrado");
+        res.status(404).json({ error: "Arquivo CSV não encontrado no servidor" });
+        return;
+      }
+      
+      console.log(`📂 Lendo arquivo: ${csvPath}`);
+      const csvContent = fs.readFileSync(csvPath, 'utf-8');
+      const lines = csvContent.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        res.status(400).json({ error: "Arquivo CSV vazio ou inválido" });
+        return;
+      }
+      
+      // 3. Processar CSV
+      const header = lines[0].split(';').map(h => h.trim());
+      const areas: any[] = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(';').map(v => v.trim());
+        
+        if (values.length < header.length) continue;
+        
+        const row: any = {};
+        header.forEach((h, idx) => {
+          row[h] = values[idx];
+        });
+        
+        // Converter formato brasileiro
+        const parseBrazilianNumber = (value: string): number => {
+          if (!value || value.trim() === '') return 0;
+          value = value.replace(/"/g, '').replace(/\./g, '').replace(/,/g, '.');
+          return parseFloat(value) || 0;
+        };
+        
+        // Calcular próxima previsão (45 dias)
+        const calculateNextForecast = (lote: number, metragem: number): string => {
+          const today = new Date();
+          const produtividade = lote === 1 ? 85000 : 70000;
+          const diasNecessarios = Math.ceil(metragem / produtividade);
+          const diasAtePrevisao = 45 - diasNecessarios;
+          const proximaPrevisao = new Date(today);
+          proximaPrevisao.setDate(proximaPrevisao.getDate() + diasAtePrevisao);
+          return proximaPrevisao.toISOString().split('T')[0];
+        };
+        
+        const metragem = parseBrazilianNumber(row['Metragem (m²)'] || row['metragem_m2'] || '0');
+        const lat = parseBrazilianNumber(row['Latitude'] || row['lat'] || '0');
+        const lng = parseBrazilianNumber(row['Longitude'] || row['lng'] || '0');
+        const lote = parseInt(row['Lote'] || row['lote'] || '1');
+        
+        // Validar coordenadas
+        if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+          continue;
+        }
+        
+        areas.push({
+          tipo: row['Tipo de Item'] || row['tipo_item'] || 'Área de Roçagem',
+          endereco: row['Endereço'] || row['endereco'] || '',
+          bairro: row['Bairro'] || row['bairro'] || '',
+          metragem,
+          lat,
+          lng,
+          lote,
+          servico: 'rocagem',
+          status: 'Pendente',
+          proximaPrevisao: calculateNextForecast(lote, metragem),
+          observacoes: row['Observações'] || row['observacoes'] || ''
+        });
+      }
+      
+      console.log(`✅ ${areas.length} áreas processadas do CSV`);
+      
+      // 4. Importar em lotes
+      const batchSize = 100;
+      let imported = 0;
+      
+      for (let i = 0; i < areas.length; i += batchSize) {
+        const batch = areas.slice(i, i + batchSize);
+        
+        for (const area of batch) {
+          await storage.createArea(area);
+          imported++;
+        }
+        
+        console.log(`📦 Importados ${imported}/${areas.length} registros...`);
+      }
+      
+      console.log(`🎉 Importação concluída! Total: ${imported} áreas`);
+      
+      res.json({
+        success: true,
+        message: `✅ Importação concluída! ${imported} áreas importadas com sucesso.`,
+        imported,
+        lote1: areas.filter(a => a.lote === 1).length,
+        lote2: areas.filter(a => a.lote === 2).length
+      });
+      
+    } catch (error: any) {
+      console.error("💥 ERRO na importação:", error);
+      res.status(500).json({ 
+        error: "Falha ao importar dados", 
+        details: error.message
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
