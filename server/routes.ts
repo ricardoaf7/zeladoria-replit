@@ -117,6 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endereco: area.endereco,
         bairro: area.bairro,
         ultimaRocagem: area.ultimaRocagem,
+        metragem_m2: area.metragem_m2,
       }));
       
       res.json(lightAreas);
