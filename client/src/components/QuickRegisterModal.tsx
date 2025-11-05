@@ -100,10 +100,8 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
       return await res.json() as ServiceArea;
     },
     onSuccess: (updatedArea) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "rocagem"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "jardins"] });
-      
-      // Atualizar área no cache imediatamente para reflexão instantânea na UI
+      // OTIMIZAÇÃO CRÍTICA: Não invalidar queries pesadas (1128 áreas)
+      // Apenas atualizar o cache localmente para resposta instantânea
       queryClient.setQueryData(["/api/areas/light", "rocagem"], (old: ServiceArea[] | undefined) => {
         if (!old) return old;
         return old.map(a => a.id === updatedArea.id ? updatedArea : a);
