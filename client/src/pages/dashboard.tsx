@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MapInfoCard } from "@/components/MapInfoCard";
 import { QuickRegisterModal } from "@/components/QuickRegisterModal";
+import { ManualForecastModal } from "@/components/ManualForecastModal";
 import { MapHeaderBar } from "@/components/MapHeaderBar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { BottomSheet, type BottomSheetState } from "@/components/BottomSheet";
@@ -23,6 +24,7 @@ export default function Dashboard() {
   const [selectedArea, setSelectedArea] = useState<ServiceArea | null>(null);
   const [showMapCard, setShowMapCard] = useState(false);
   const [showQuickRegisterModal, setShowQuickRegisterModal] = useState(false);
+  const [showManualForecastModal, setShowManualForecastModal] = useState(false);
   const [selectedService, setSelectedService] = useState<string>('');
   const [bottomSheetState, setBottomSheetState] = useState<BottomSheetState>("minimized");
   const [filters, setFilters] = useState<FilterCriteria>({
@@ -233,6 +235,11 @@ export default function Dashboard() {
     setShowQuickRegisterModal(true);
   };
 
+  const handleOpenManualForecast = () => {
+    setShowMapCard(false);
+    setShowManualForecastModal(true);
+  };
+
   const handleAreaUpdate = (updatedArea: ServiceArea) => {
     setSelectedArea(updatedArea);
   };
@@ -338,6 +345,7 @@ export default function Dashboard() {
                 area={selectedArea}
                 onClose={handleCloseMapCard}
                 onRegisterMowing={handleOpenQuickRegister}
+                onSetManualForecast={handleOpenManualForecast}
               />
             </div>
           )}
@@ -440,6 +448,7 @@ export default function Dashboard() {
                   area={selectedArea}
                   onClose={handleCloseMapCard}
                   onRegisterMowing={handleOpenQuickRegister}
+                  onSetManualForecast={handleOpenManualForecast}
                 />
               </div>
             )}
@@ -452,6 +461,13 @@ export default function Dashboard() {
         area={selectedArea}
         open={showQuickRegisterModal}
         onOpenChange={setShowQuickRegisterModal}
+      />
+
+      {/* Modal de previsão manual */}
+      <ManualForecastModal
+        area={selectedArea}
+        open={showManualForecastModal}
+        onOpenChange={setShowManualForecastModal}
       />
     </SidebarProvider>
   );

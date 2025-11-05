@@ -118,6 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bairro: area.bairro,
         ultimaRocagem: area.ultimaRocagem,
         metragem_m2: area.metragem_m2,
+        manualSchedule: area.manualSchedule,
       }));
       
       res.json(lightAreas);
@@ -309,6 +310,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/areas/:id/manual-forecast", async (req, res) => {
+    try {
+      const areaId = parseInt(req.params.id);
+      const manualForecastSchema = z.object({
+        proximaPrevisao: z.string().min(1),
+      });
+
+      const { proximaPrevisao } = manualForecastSchema.parse(req.body);
+      
+      const updatedArea = await storage.updateArea(areaId, {
+        proximaPrevisao,
+        manualSchedule: true,
+      });
+
+      if (!updatedArea) {
+        res.status(404).json({ error: "Area not found" });
+        return;
+      }
+
+      res.json(updatedArea);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid manual forecast data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to set manual forecast" });
+      }
+    }
+  });
+
   app.patch("/api/areas/:id", async (req, res) => {
     try {
       const areaId = parseInt(req.params.id);
@@ -329,6 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const dataComTimestamp = {
           ...data,
           dataRegistro: new Date().toISOString(),
+          manualSchedule: false,
         };
         
         // Aplicar atualizações incluindo auditoria

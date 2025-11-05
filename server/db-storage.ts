@@ -116,6 +116,7 @@ export class DbStorage implements IStorage {
     if (data.polygon !== undefined) updateData.polygon = data.polygon;
     if (data.history !== undefined) updateData.history = data.history;
     if (data.registradoPor !== undefined) updateData.registradoPor = data.registradoPor;
+    if (data.manualSchedule !== undefined) updateData.manualSchedule = data.manualSchedule;
     if (data.dataRegistro !== undefined) {
       // Converter string ISO para Date object para o campo timestamp no banco
       updateData.dataRegistro = typeof data.dataRegistro === 'string' 

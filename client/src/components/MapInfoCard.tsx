@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash } from "lucide-react";
+import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,10 @@ interface MapInfoCardProps {
   area: ServiceArea;
   onClose: () => void;
   onRegisterMowing: () => void;
+  onSetManualForecast: () => void;
 }
 
-export function MapInfoCard({ area, onClose, onRegisterMowing }: MapInfoCardProps) {
+export function MapInfoCard({ area, onClose, onRegisterMowing, onSetManualForecast }: MapInfoCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const getDaysUntilMowing = (): number | null => {
     if (!area.proximaPrevisao) return null;
@@ -81,7 +82,7 @@ export function MapInfoCard({ area, onClose, onRegisterMowing }: MapInfoCardProp
           </div>
 
           {area.proximaPrevisao && (
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-xs flex-wrap">
               <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground">Previsão:</span>
               <span className="font-medium" data-testid="text-previsao">
@@ -92,6 +93,12 @@ export function MapInfoCard({ area, onClose, onRegisterMowing }: MapInfoCardProp
                   </span>
                 )}
               </span>
+              {area.manualSchedule && (
+                <Badge variant="outline" className="text-[10px] h-4 px-1.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700" data-testid="badge-manual-forecast">
+                  <CalendarClock className="h-2.5 w-2.5 mr-0.5" />
+                  Manual
+                </Badge>
+              )}
             </div>
           )}
         </div>
@@ -161,6 +168,16 @@ export function MapInfoCard({ area, onClose, onRegisterMowing }: MapInfoCardProp
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             Registrar Roçagem
+          </Button>
+          
+          <Button
+            onClick={onSetManualForecast}
+            variant="outline"
+            className="w-full h-9 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950"
+            data-testid="button-set-manual-forecast"
+          >
+            <CalendarClock className="h-4 w-4 mr-2" />
+            Definir Previsão Manual
           </Button>
           
           <Button
