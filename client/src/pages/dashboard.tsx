@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
 import { DashboardMap } from "@/components/DashboardMap";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -97,6 +97,13 @@ export default function Dashboard() {
     queryKey: ["/api/config"],
   });
 
+  // OTIMIZAÇÃO CRÍTICA: Usar useDeferredValue para separar atualização urgente (input)
+  // de computação pesada (filtros). Evita lag de 3-4 segundos na digitação.
+  // React prioriza atualização do input e processa filtros depois
+  const deferredFilters = useDeferredValue(filters);
+  const deferredTimeRangeFilter = useDeferredValue(timeRangeFilter);
+  const deferredCustomFilterDateRange = useDeferredValue(customFilterDateRange);
+
   // Função auxiliar para calcular dias ATÉ próxima previsão
   const getDaysUntilNextMowing = (area: ServiceArea): number => {
     if (!area.proximaPrevisao) return -1;
@@ -111,14 +118,15 @@ export default function Dashboard() {
   };
 
   // Filtrar áreas baseado nos critérios (incluindo filtro de tempo)
+  // IMPORTANTE: Usa valores deferidos para não bloquear UI durante digitação
   const filteredRocagemAreas = useMemo(() => {
     let areas = rocagemAreas;
 
-    // Aplicar filtro de tempo primeiro
-    if (timeRangeFilter) {
+    // Aplicar filtro de tempo primeiro (usando valores deferidos)
+    if (deferredTimeRangeFilter) {
       areas = areas.filter(area => {
         // Filtro "Executando" - apenas áreas com status "Em Execução"
-        if (timeRangeFilter === 'executing') {
+        if (deferredTimeRangeFilter === 'executing') {
           return area.status === 'Em Execução';
         }
 
@@ -128,7 +136,7 @@ export default function Dashboard() {
         // Se não tem previsão, não mostra em nenhum filtro de tempo
         if (days === -1) return false;
 
-        switch (timeRangeFilter) {
+        switch (deferredTimeRangeFilter) {
           case '0-5':
             return days >= 0 && days <= 5;
           case '6-15':
@@ -141,10 +149,10 @@ export default function Dashboard() {
             return days > 40 && days <= 45;
           case 'custom':
             // Filtro por range de datas
-            if (!customFilterDateRange.from || !customFilterDateRange.to || !area.proximaPrevisao) return false;
-            const fromDate = new Date(customFilterDateRange.from);
+            if (!deferredCustomFilterDateRange.from || !deferredCustomFilterDateRange.to || !area.proximaPrevisao) return false;
+            const fromDate = new Date(deferredCustomFilterDateRange.from);
             fromDate.setHours(0, 0, 0, 0);
-            const toDate = new Date(customFilterDateRange.to);
+            const toDate = new Date(deferredCustomFilterDateRange.to);
             toDate.setHours(0, 0, 0, 0);
             const nextDate = new Date(area.proximaPrevisao);
             nextDate.setHours(0, 0, 0, 0);
@@ -155,18 +163,18 @@ export default function Dashboard() {
       });
     }
 
-    // Aplicar filtros tradicionais
-    if (!filters.search && 
-        (!filters.bairro || filters.bairro === "all") && 
-        (!filters.lote || filters.lote === "all") && 
-        (!filters.status || filters.status === "all") && 
-        (!filters.tipo || filters.tipo === "all")) {
+    // Aplicar filtros tradicionais (usando valores deferidos)
+    if (!deferredFilters.search && 
+        (!deferredFilters.bairro || deferredFilters.bairro === "all") && 
+        (!deferredFilters.lote || deferredFilters.lote === "all") && 
+        (!deferredFilters.status || deferredFilters.status === "all") && 
+        (!deferredFilters.tipo || deferredFilters.tipo === "all")) {
       return areas;
     }
 
     return areas.filter(area => {
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
+      if (deferredFilters.search) {
+        const searchLower = deferredFilters.search.toLowerCase();
         const endereco = area.endereco?.toLowerCase() || "";
         const bairro = area.bairro?.toLowerCase() || "";
         if (!endereco.includes(searchLower) && !bairro.includes(searchLower)) {
@@ -174,14 +182,14 @@ export default function Dashboard() {
         }
       }
 
-      if (filters.bairro && filters.bairro !== "all" && area.bairro !== filters.bairro) return false;
-      if (filters.lote && filters.lote !== "all" && area.lote?.toString() !== filters.lote) return false;
-      if (filters.status && filters.status !== "all" && area.status !== filters.status) return false;
-      if (filters.tipo && filters.tipo !== "all" && area.tipo !== filters.tipo) return false;
+      if (deferredFilters.bairro && deferredFilters.bairro !== "all" && area.bairro !== deferredFilters.bairro) return false;
+      if (deferredFilters.lote && deferredFilters.lote !== "all" && area.lote?.toString() !== deferredFilters.lote) return false;
+      if (deferredFilters.status && deferredFilters.status !== "all" && area.status !== deferredFilters.status) return false;
+      if (deferredFilters.tipo && deferredFilters.tipo !== "all" && area.tipo !== deferredFilters.tipo) return false;
 
       return true;
     });
-  }, [rocagemAreas, filters, timeRangeFilter, customFilterDateRange]);
+  }, [rocagemAreas, deferredFilters, deferredTimeRangeFilter, deferredCustomFilterDateRange]);
 
   const hasActiveFilters = filters.search || 
     (filters.bairro && filters.bairro !== "all") || 
