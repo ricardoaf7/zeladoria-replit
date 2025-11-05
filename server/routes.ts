@@ -46,11 +46,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Novo endpoint otimizado: dados leves para mapa (sem histórico, sem detalhes pesados)
+  // Novo endpoint otimizado: dados leves para mapa (com suporte a viewport bounds)
   app.get("/api/areas/light", async (req, res) => {
     try {
       const servico = req.query.servico as string || "rocagem";
-      const areas = await storage.getAllAreas(servico);
+      const boundsParam = req.query.bounds as string;
+      
+      let areas = await storage.getAllAreas(servico);
+      
+      // Filtrar por bounds se fornecido (viewport do mapa)
+      if (boundsParam) {
+        try {
+          const bounds = JSON.parse(boundsParam);
+          // Validar bounds usando Number.isFinite para aceitar valores zero/negativos
+          if (Number.isFinite(bounds.north) && Number.isFinite(bounds.south) && 
+              Number.isFinite(bounds.east) && Number.isFinite(bounds.west)) {
+            areas = areas.filter(area => {
+              if (area.lat === null || area.lat === undefined || 
+                  area.lng === null || area.lng === undefined) return false;
+              return area.lat >= bounds.south && 
+                     area.lat <= bounds.north && 
+                     area.lng >= bounds.west && 
+                     area.lng <= bounds.east;
+            });
+          }
+        } catch (e) {
+          console.error("Error parsing bounds:", e);
+          res.status(400).json({ error: "Invalid bounds format" });
+          return;
+        }
+      }
       
       // Retornar apenas campos essenciais para o mapa
       const lightAreas = areas.map(area => ({
@@ -63,6 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         servico: area.servico,
         endereco: area.endereco,
         bairro: area.bairro,
+        ultimaRocagem: area.ultimaRocagem,
       }));
       
       res.json(lightAreas);

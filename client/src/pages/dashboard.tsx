@@ -43,23 +43,41 @@ export default function Dashboard() {
     // Deixar o usuário controlar via botão Menu
   };
 
-  // Usar endpoint otimizado com dados leves para o mapa
+  // State para bounds do viewport
+  const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
+  
+  // Função para converter Leaflet bounds para query string
+  const boundsToQuery = (bounds: L.LatLngBounds | null): string => {
+    if (!bounds) return "";
+    return JSON.stringify({
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+    });
+  };
+
+  // Usar endpoint otimizado com dados leves e viewport bounds
   const { data: rocagemAreas = [] } = useQuery<ServiceArea[]>({
-    queryKey: ["/api/areas/light", "rocagem"],
+    queryKey: ["/api/areas/light", "rocagem", boundsToQuery(mapBounds)],
     queryFn: async () => {
-      const res = await fetch("/api/areas/light?servico=rocagem");
+      const boundsQuery = mapBounds ? `&bounds=${encodeURIComponent(boundsToQuery(mapBounds))}` : "";
+      const res = await fetch(`/api/areas/light?servico=rocagem${boundsQuery}`);
       if (!res.ok) throw new Error("Failed to fetch areas");
       return res.json();
     },
+    staleTime: 30000, // Cache por 30 segundos
   });
 
   const { data: jardinsAreas = [] } = useQuery<ServiceArea[]>({
-    queryKey: ["/api/areas/light", "jardins"],
+    queryKey: ["/api/areas/light", "jardins", boundsToQuery(mapBounds)],
     queryFn: async () => {
-      const res = await fetch("/api/areas/light?servico=jardins");
+      const boundsQuery = mapBounds ? `&bounds=${encodeURIComponent(boundsToQuery(mapBounds))}` : "";
+      const res = await fetch(`/api/areas/light?servico=jardins${boundsQuery}`);
       if (!res.ok) throw new Error("Failed to fetch areas");
       return res.json();
     },
+    staleTime: 30000, // Cache por 30 segundos
   });
 
   const { data: config } = useQuery<AppConfig>({
@@ -325,6 +343,7 @@ export default function Dashboard() {
             selectedAreaIds={selectedAreaIds}
             searchQuery={filters.search}
             activeFilter={timeRangeFilter}
+            onBoundsChange={setMapBounds}
           />
 
           {/* Card flutuante no mapa */}
@@ -440,6 +459,7 @@ export default function Dashboard() {
               selectionMode={selectionMode}
               selectedAreaIds={selectedAreaIds}
               activeFilter={timeRangeFilter}
+              onBoundsChange={setMapBounds}
             />
 
             {/* Card flutuante no mapa */}

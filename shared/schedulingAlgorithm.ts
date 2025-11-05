@@ -4,7 +4,6 @@
  * Próxima roçagem = Última roçagem + 45 dias
  */
 
-import { addBusinessDays, isBusinessDay } from './holidays';
 import type { ServiceArea, AppConfig } from './schema';
 
 const MOWING_CYCLE_DAYS = 45;

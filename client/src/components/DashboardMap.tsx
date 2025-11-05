@@ -24,6 +24,7 @@ interface DashboardMapProps {
   filteredAreaIds?: Set<number>;
   searchQuery?: string;
   activeFilter?: TimeRangeFilter;
+  onBoundsChange?: (bounds: L.LatLngBounds) => void;
 }
 
 export function DashboardMap({
@@ -37,6 +38,7 @@ export function DashboardMap({
   filteredAreaIds,
   searchQuery = '',
   activeFilter = null,
+  onBoundsChange,
 }: DashboardMapProps) {
   const { toast } = useToast();
   const internalMapRef = useRef<L.Map | null>(null);
@@ -125,11 +127,30 @@ export function DashboardMap({
 
     mapRef.current = map;
 
+    // Listener para atualizar bounds quando o mapa se mover
+    const handleBoundsChange = () => {
+      if (onBoundsChange) {
+        const bounds = map.getBounds();
+        onBoundsChange(bounds);
+      }
+    };
+
+    // Disparar bounds iniciais
+    handleBoundsChange();
+
+    // Escutar eventos de movimento com debounce
+    let boundsTimeout: NodeJS.Timeout;
+    map.on('moveend', () => {
+      clearTimeout(boundsTimeout);
+      boundsTimeout = setTimeout(handleBoundsChange, 300);
+    });
+
     return () => {
+      clearTimeout(boundsTimeout);
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [onBoundsChange]);
 
   useEffect(() => {
     if (!mapRef.current) return;

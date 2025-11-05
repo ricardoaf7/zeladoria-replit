@@ -72,15 +72,13 @@ export function MapInfoCard({ area, onClose, onRegisterMowing }: MapInfoCardProp
             </div>
           )}
 
-          {area.ultimaRocagem && (
-            <div className="flex items-center gap-2 text-xs">
-              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground">Última Roçagem:</span>
-              <span className="font-medium" data-testid="text-ultima-rocagem">
-                {formatDateBR(area.ultimaRocagem)}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-xs">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-muted-foreground">Última Roçagem:</span>
+            <span className="font-medium" data-testid="text-ultima-rocagem">
+              {area.ultimaRocagem ? formatDateBR(area.ultimaRocagem) : "Nunca roçada"}
+            </span>
+          </div>
 
           {area.proximaPrevisao && (
             <div className="flex items-center gap-2 text-xs">
