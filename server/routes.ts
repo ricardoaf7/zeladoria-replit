@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bairro: z.string().optional(),
         metragem_m2: z.number().optional(),
         lote: z.number().optional(),
-        ultimaRocagem: z.string().optional(),
+        ultimaRocagem: z.string().min(1).optional(),
         status: z.enum(["Pendente", "Em Execução", "Concluído"]).optional(),
         registradoPor: z.string().optional(),
       });
@@ -325,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = updateSchema.parse(req.body);
       
       // Se está registrando roçagem, adicionar timestamp automático
-      if (data.ultimaRocagem && data.registradoPor) {
+      if (data.ultimaRocagem) {
         const dataComTimestamp = {
           ...data,
           dataRegistro: new Date().toISOString(),
