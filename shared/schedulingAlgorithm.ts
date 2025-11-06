@@ -17,9 +17,9 @@ export interface ScheduleCalculationResult {
 /**
  * Calcula a próxima previsão de roçagem para uma área
  * Ciclo fixo: próxima roçagem = última roçagem + 45 dias
- * Se nunca foi roçada, usa a data atual
+ * Se nunca foi roçada, retorna null (área aparece sem previsão)
  * @param area Área para calcular
- * @returns Resultado do cálculo
+ * @returns Resultado do cálculo ou null
  */
 export function calculateNextMowing(area: ServiceArea): ScheduleCalculationResult | null {
   // Se tem agendamento manual, não calcula automaticamente
@@ -27,21 +27,18 @@ export function calculateNextMowing(area: ServiceArea): ScheduleCalculationResul
     return null;
   }
   
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  let nextMowingDate: Date;
-  
-  if (area.ultimaRocagem) {
-    // Se já foi roçada, próxima = última + 45 dias
-    const lastMowing = new Date(area.ultimaRocagem);
-    lastMowing.setHours(0, 0, 0, 0);
-    nextMowingDate = new Date(lastMowing);
-    nextMowingDate.setDate(lastMowing.getDate() + MOWING_CYCLE_DAYS);
-  } else {
-    // Se nunca foi roçada, agenda para hoje
-    nextMowingDate = new Date(today);
+  // Se nunca foi roçada, não tem como calcular previsão
+  // Área deve aparecer sem previsão até primeira roçagem
+  if (!area.ultimaRocagem) {
+    return null;
   }
+  
+  // Calcular próxima roçagem = última + 45 dias
+  const lastMowing = new Date(area.ultimaRocagem);
+  lastMowing.setHours(0, 0, 0, 0);
+  
+  const nextMowingDate = new Date(lastMowing);
+  nextMowingDate.setDate(lastMowing.getDate() + MOWING_CYCLE_DAYS);
   
   return {
     areaId: area.id,
