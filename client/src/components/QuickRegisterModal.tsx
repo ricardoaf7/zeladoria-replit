@@ -48,19 +48,54 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
     }
   };
 
-  // Processar entrada manual de data - mantém texto do usuário
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
+  // Formatar entrada de data automaticamente - aceita apenas números
+  // Exemplo: "301025" → "30/10/2025"
+  const formatDateInput = (value: string): string => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
     
-    // Tentar parsear a data (formato dd/MM/yyyy)
-    if (value.length === 10) {
+    // Limita a 8 dígitos (ddmmaaaa)
+    const limited = numbers.slice(0, 8);
+    
+    // Adiciona barras nas posições corretas
+    let formatted = '';
+    for (let i = 0; i < limited.length; i++) {
+      if (i === 2 || i === 4) {
+        formatted += '/';
+      }
+      formatted += limited[i];
+    }
+    
+    return formatted;
+  };
+
+  // Processar entrada manual de data com formatação automática
+  const handleInputChange = (value: string) => {
+    const formatted = formatDateInput(value);
+    setInputValue(formatted);
+    
+    // Tentar parsear a data (formato dd/MM/yyyy ou dd/MM/yy)
+    if (formatted.length >= 8) {
       try {
-        const parsedDate = parse(value, "dd/MM/yyyy", new Date());
+        let dateStr = formatted;
+        
+        // Se ano tem apenas 2 dígitos, completar para 4
+        // Exemplo: "30/10/25" → "30/10/2025"
+        if (formatted.length === 8) { // dd/MM/yy
+          const parts = formatted.split('/');
+          if (parts.length === 3 && parts[2].length === 2) {
+            const year = parseInt(parts[2]);
+            const fullYear = year < 50 ? 2000 + year : 1900 + year;
+            dateStr = `${parts[0]}/${parts[1]}/${fullYear}`;
+          }
+        }
+        
+        const parsedDate = parse(dateStr, "dd/MM/yyyy", new Date());
         if (!isNaN(parsedDate.getTime())) {
           setDate(parsedDate);
         }
       } catch (e) {
-        // Ignora erro de parse, mantém texto do usuário
+        // Ignora erro de parse, mantém texto formatado
       }
     }
   };
@@ -145,7 +180,7 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
               <Input
                 id="date-input"
                 type="text"
-                placeholder="dd/mm/aaaa"
+                placeholder="Digite apenas números: 301025"
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onBlur={handleInputBlur}
@@ -185,7 +220,7 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
             </div>
             
             <p className="text-xs text-muted-foreground">
-              Digite manualmente ou clique no calendário. Padrão: hoje ({format(new Date(), "dd/MM/yyyy")})
+              Digite apenas números (ex: 301025 vira 30/10/2025) ou use o calendário. Padrão: hoje
             </p>
           </div>
         </div>
