@@ -206,17 +206,16 @@ export function DashboardMap({
       const color = getAreaColor(area, today, false, activeFilter);
       const isPulsing = area.status === "Em Execução";
 
-      // Criar um ícone div circular arrastável
+      // Criar um ícone div circular arrastável com efeito de gradiente (borda profunda + centro transparente)
       const icon = L.divIcon({
         className: "area-marker",
         html: `<div style="
-          background-color: ${color};
+          background: radial-gradient(circle at center, transparent 0%, transparent 30%, ${color} 60%, ${color} 100%);
           width: 16px;
           height: 16px;
           border-radius: 50%;
           border: 2px solid ${color};
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-          opacity: 0.9;
           cursor: move;
           ${isPulsing ? 'animation: marker-blink 2s ease-in-out infinite;' : ''}
         "></div>`,
@@ -349,32 +348,32 @@ function getAreaColor(area: ServiceArea, today: Date, isSelected = false, active
   }
 
   // Sistema baseado em PRÓXIMA previsão (dias ATÉ roçar)
-  // Quanto mais distante, mais claro o verde
+  // Nova paleta de cores personalizada
   if (area.proximaPrevisao) {
     const nextDate = new Date(area.proximaPrevisao);
     nextDate.setHours(0, 0, 0, 0);
     
     const daysUntilMowing = Math.floor((nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Previsão próxima (0-5 dias) - Verde
+    // Previsão próxima (0-5 dias) - Verde água
     if (daysUntilMowing >= 0 && daysUntilMowing <= 5) {
-      return "#10b981";
+      return "#009d81";
     } 
-    // Previsão (6-15 dias) - Verde médio
+    // Previsão (6-15 dias) - Azul
     else if (daysUntilMowing > 5 && daysUntilMowing <= 15) {
-      return "#34d399";
+      return "#549ccc";
     } 
-    // Previsão (16-25 dias) - Verde mais claro
+    // Previsão (16-25 dias) - Rosa escuro
     else if (daysUntilMowing > 15 && daysUntilMowing <= 25) {
-      return "#6ee7b7";
+      return "#a83e6b";
     } 
-    // Previsão (26-40 dias) - Verde claro
+    // Previsão (26-40 dias) - Laranja
     else if (daysUntilMowing > 25 && daysUntilMowing <= 40) {
-      return "#a7f3d0";
+      return "#fe8963";
     } 
     // Previsão (41-45 dias) - Vermelho (últimos do ciclo)
     else if (daysUntilMowing > 40 && daysUntilMowing <= 45) {
-      return "#ef4444";
+      return "#ea3c27";
     }
     // Fora das categorias definidas
     // Quando filtro "Todas" ativo (null), usar cor laranja

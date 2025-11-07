@@ -27,11 +27,11 @@ interface MapLegendProps {
 
 const timeRanges = [
   { value: 'executing' as const, label: 'Executando', sublabel: 'Roçando agora', color: '#10b981', isPulsing: true },
-  { value: '0-5' as const, label: '0-5 dias', sublabel: 'Próxima previsão', color: '#10b981' },
-  { value: '6-15' as const, label: '6-15 dias', sublabel: 'Previsão breve', color: '#34d399' },
-  { value: '16-25' as const, label: '16-25 dias', sublabel: 'Previsão média', color: '#6ee7b7' },
-  { value: '26-40' as const, label: '26-40 dias', sublabel: 'Previsão distante', color: '#a7f3d0' },
-  { value: '41-45' as const, label: '41-45 dias', sublabel: 'Último do ciclo', color: '#ef4444' },
+  { value: '0-5' as const, label: '0-5 dias', sublabel: 'Próxima previsão', color: '#009d81' },
+  { value: '6-15' as const, label: '6-15 dias', sublabel: 'Previsão breve', color: '#549ccc' },
+  { value: '16-25' as const, label: '16-25 dias', sublabel: 'Previsão média', color: '#a83e6b' },
+  { value: '26-40' as const, label: '26-40 dias', sublabel: 'Previsão distante', color: '#fe8963' },
+  { value: '41-45' as const, label: '41-45 dias', sublabel: 'Último do ciclo', color: '#ea3c27' },
 ];
 
 export function MapLegend({ 
