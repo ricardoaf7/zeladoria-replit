@@ -22,12 +22,13 @@ interface MapHeaderBarProps {
 const categoryFilters = [
   { value: null, label: 'Todas', color: '#94a3b8', shortLabel: 'Todas' },
   { value: 'executing' as const, label: 'Executando', color: '#10b981', shortLabel: 'Exec', isPulsing: true },
-  { value: '0-5' as const, label: '0-5 dias', color: '#009d81', shortLabel: '0-5d' },
-  { value: '6-15' as const, label: '6-15 dias', color: '#549ccc', shortLabel: '6-15d' },
-  { value: '16-25' as const, label: '16-25 dias', color: '#a83e6b', shortLabel: '16-25d' },
-  { value: '26-40' as const, label: '26-40 dias', color: '#fe8963', shortLabel: '26-40d' },
-  { value: '41-45' as const, label: '41-45 dias', color: '#ea3c27', shortLabel: '41-45d' },
-  { value: 'no-history' as const, label: 'Sem Registro', color: '#1e1c3e', shortLabel: 'S/Reg' },
+  { value: '1-5' as const, label: '1-5 dias', color: '#0086ff', shortLabel: '1-5d' },
+  { value: '6-15' as const, label: '6-15 dias', color: '#139b89', shortLabel: '6-15d' },
+  { value: '16-25' as const, label: '16-25 dias', color: '#fe8963', shortLabel: '16-25d' },
+  { value: '26-35' as const, label: '26-35 dias', color: '#b79689', shortLabel: '26-35d' },
+  { value: '36-45' as const, label: '36-45 dias', color: '#a08ee9', shortLabel: '36-45d' },
+  { value: '46+' as const, label: '+45 dias', color: '#ea3c27', shortLabel: '+45d' },
+  { value: 'no-history' as const, label: 'Sem Registro', color: '#c0c0c0', shortLabel: 'S/Reg' },
 ];
 
 // Função auxiliar para escapar caracteres especiais de regex
@@ -314,9 +315,13 @@ export function MapHeaderBar({
         )}
       </div>
 
-      {/* Linha 2: Filtros de categoria (chips horizontais com scroll) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-        {categoryFilters.map((filter) => {
+      {/* Linha 2: Título e Filtros de categoria (chips horizontais com scroll) */}
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
+          ROÇADO HÁ
+        </span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide flex-1">
+          {categoryFilters.map((filter) => {
           const isActive = activeFilter === filter.value;
           
           return (
@@ -342,6 +347,7 @@ export function MapHeaderBar({
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Estilo CSS para esconder scrollbar mas manter scroll */}

@@ -10,11 +10,12 @@ import { ptBR } from 'date-fns/locale';
 
 export type TimeRangeFilter = 
   | 'executing'  // Executando
-  | '0-5'        // 0-5 dias
+  | '1-5'        // 1-5 dias
   | '6-15'       // 6-15 dias
   | '16-25'      // 16-25 dias
-  | '26-40'      // 26-40 dias
-  | '41-45'      // 41-45 dias
+  | '26-35'      // 26-35 dias
+  | '36-45'      // 36-45 dias
+  | '46+'        // mais de 45 dias
   | 'no-history' // Sem registro
   | 'custom'     // Personalizado
   | null;        // Todos
@@ -28,12 +29,13 @@ interface MapLegendProps {
 
 const timeRanges = [
   { value: 'executing' as const, label: 'Executando', sublabel: 'Roçando agora', color: '#10b981', isPulsing: true },
-  { value: '0-5' as const, label: '0-5 dias', sublabel: 'Próxima previsão', color: '#009d81' },
-  { value: '6-15' as const, label: '6-15 dias', sublabel: 'Previsão breve', color: '#549ccc' },
-  { value: '16-25' as const, label: '16-25 dias', sublabel: 'Previsão média', color: '#a83e6b' },
-  { value: '26-40' as const, label: '26-40 dias', sublabel: 'Previsão distante', color: '#fe8963' },
-  { value: '41-45' as const, label: '41-45 dias', sublabel: 'Último do ciclo', color: '#ea3c27' },
-  { value: 'no-history' as const, label: 'Sem Registro', sublabel: 'Nunca roçada', color: '#1e1c3e' },
+  { value: '1-5' as const, label: '1-5 dias', sublabel: 'Roçado recentemente', color: '#0086ff' },
+  { value: '6-15' as const, label: '6-15 dias', sublabel: 'Roçado há 6-15 dias', color: '#139b89' },
+  { value: '16-25' as const, label: '16-25 dias', sublabel: 'Roçado há 16-25 dias', color: '#fe8963' },
+  { value: '26-35' as const, label: '26-35 dias', sublabel: 'Roçado há 26-35 dias', color: '#b79689' },
+  { value: '36-45' as const, label: '36-45 dias', sublabel: 'Roçado há 36-45 dias', color: '#a08ee9' },
+  { value: '46+' as const, label: 'Mais de 45 dias', sublabel: 'Requer atenção', color: '#ea3c27' },
+  { value: 'no-history' as const, label: 'Sem Registro', sublabel: 'Nunca roçada', color: '#c0c0c0' },
 ];
 
 export function MapLegend({ 
@@ -69,7 +71,7 @@ export function MapLegend({
       
       <CardContent className="space-y-3">
         <div className="space-y-2">
-          <div className="text-xs font-semibold opacity-80">Previsão de Roçagem</div>
+          <div className="text-xs font-semibold opacity-80">ROÇADO HÁ</div>
           <div className="text-[10px] opacity-60 mb-2">Clique para filtrar as áreas</div>
           
           {/* Botão "Todos" */}

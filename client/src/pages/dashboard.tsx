@@ -104,17 +104,17 @@ export default function Dashboard() {
   const deferredTimeRangeFilter = useDeferredValue(timeRangeFilter);
   const deferredCustomFilterDateRange = useDeferredValue(customFilterDateRange);
 
-  // Função auxiliar para calcular dias ATÉ próxima previsão
-  const getDaysUntilNextMowing = (area: ServiceArea): number => {
-    if (!area.proximaPrevisao) return -1;
+  // Função auxiliar para calcular dias DESDE última roçagem
+  const getDaysSinceLastMowing = (area: ServiceArea): number => {
+    if (!area.ultimaRocagem) return -1; // Sem histórico
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const nextDate = new Date(area.proximaPrevisao);
-    nextDate.setHours(0, 0, 0, 0);
+    const lastDate = new Date(area.ultimaRocagem);
+    lastDate.setHours(0, 0, 0, 0);
     
-    return Math.floor((nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   // Filtrar áreas baseado nos critérios (incluindo filtro de tempo)
@@ -135,33 +135,35 @@ export default function Dashboard() {
           return !area.ultimaRocagem;
         }
 
-        // Para outros filtros, calcular dias até próxima previsão
-        const days = getDaysUntilNextMowing(area);
+        // Para outros filtros, calcular dias desde última roçagem
+        const days = getDaysSinceLastMowing(area);
         
-        // Se não tem previsão, não mostra em nenhum filtro de tempo
+        // Se não tem histórico, não mostra em nenhum filtro de tempo
         if (days === -1) return false;
 
         switch (deferredTimeRangeFilter) {
-          case '0-5':
-            return days >= 0 && days <= 5;
+          case '1-5':
+            return days >= 1 && days <= 5;
           case '6-15':
-            return days > 5 && days <= 15;
+            return days >= 6 && days <= 15;
           case '16-25':
-            return days > 15 && days <= 25;
-          case '26-40':
-            return days > 25 && days <= 40;
-          case '41-45':
-            return days > 40 && days <= 45;
+            return days >= 16 && days <= 25;
+          case '26-35':
+            return days >= 26 && days <= 35;
+          case '36-45':
+            return days >= 36 && days <= 45;
+          case '46+':
+            return days > 45;
           case 'custom':
-            // Filtro por range de datas
-            if (!deferredCustomFilterDateRange.from || !deferredCustomFilterDateRange.to || !area.proximaPrevisao) return false;
+            // Filtro por range de datas - baseado em ÚLTIMA roçagem
+            if (!deferredCustomFilterDateRange.from || !deferredCustomFilterDateRange.to || !area.ultimaRocagem) return false;
             const fromDate = new Date(deferredCustomFilterDateRange.from);
             fromDate.setHours(0, 0, 0, 0);
             const toDate = new Date(deferredCustomFilterDateRange.to);
             toDate.setHours(0, 0, 0, 0);
-            const nextDate = new Date(area.proximaPrevisao);
-            nextDate.setHours(0, 0, 0, 0);
-            return nextDate >= fromDate && nextDate <= toDate;
+            const lastMowDate = new Date(area.ultimaRocagem);
+            lastMowDate.setHours(0, 0, 0, 0);
+            return lastMowDate >= fromDate && lastMowDate <= toDate;
           default:
             return true;
         }
@@ -349,6 +351,7 @@ export default function Dashboard() {
             mapRef={mapRef}
             searchQuery={filters.search}
             activeFilter={timeRangeFilter}
+            selectedAreaId={selectedArea?.id || null}
           />
 
           {/* Card flutuante no mapa */}
@@ -452,6 +455,7 @@ export default function Dashboard() {
               searchQuery={filters.search}
               mapRef={mapRef}
               activeFilter={timeRangeFilter}
+              selectedAreaId={selectedArea?.id || null}
             />
 
             {/* Card flutuante no mapa */}

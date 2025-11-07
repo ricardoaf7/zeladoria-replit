@@ -23,6 +23,7 @@ interface DashboardMapProps {
   searchQuery?: string;
   activeFilter?: TimeRangeFilter;
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
+  selectedAreaId?: number | null;
 }
 
 export function DashboardMap({
@@ -35,6 +36,7 @@ export function DashboardMap({
   searchQuery = '',
   activeFilter = null,
   onBoundsChange,
+  selectedAreaId = null,
 }: DashboardMapProps) {
   const { toast } = useToast();
   const internalMapRef = useRef<L.Map | null>(null);
@@ -203,7 +205,8 @@ export function DashboardMap({
         return;
       }
 
-      const color = getAreaColor(area, today, false, activeFilter);
+      const isSelected = selectedAreaId === area.id;
+      const color = getAreaColor(area, today, isSelected, activeFilter);
       const isPulsing = area.status === "Em Execução";
 
       // Criar um ícone div circular arrastável
@@ -229,10 +232,13 @@ export function DashboardMap({
         draggable: true, // Habilita drag em PC e mobile
       });
 
-      // Tooltip permanente discreto quando há busca ativa
+      // Tooltip permanente quando:
+      // 1. Há busca ativa OU
+      // 2. Área está selecionada
       const hasActiveSearch = searchQuery.trim().length > 0;
+      const shouldShowPermanentLabel = hasActiveSearch || isSelected;
       
-      if (hasActiveSearch) {
+      if (shouldShowPermanentLabel) {
         // Label permanente discreto: apenas endereço ou lote
         marker.bindTooltip(
           `<div class="search-label">${area.endereco || `Lote ${area.lote}`}</div>`,
@@ -340,7 +346,7 @@ export function DashboardMap({
 
 function getAreaColor(area: ServiceArea, today: Date, isSelected = false, activeFilter: TimeRangeFilter = null): string {
   if (isSelected) {
-    return "#9333ea"; // Roxo para selecionado
+    return "#171717"; // Preto para área selecionada (destaque de busca)
   }
 
   // Executando agora - verde forte com pulsação
@@ -349,52 +355,46 @@ function getAreaColor(area: ServiceArea, today: Date, isSelected = false, active
   }
 
   // PRIORIDADE: Verificar se nunca foi roçada (sem histórico)
-  // Essas áreas devem ter cor especial independente de ter previsão calculada
   if (!area.ultimaRocagem) {
-    // Área sem histórico de roçagem - cor escura #1e1c3e
-    // Aparece em roxo quando: filtro "Todas" (null) OU filtro "Sem Registro" ('no-history')
-    // Aparece em cinza quando: qualquer outro filtro específico
-    return (activeFilter === null || activeFilter === 'no-history') ? "#1e1c3e" : "#9ca3af";
+    // Área sem histórico de roçagem - cor cinza claro #c0c0c0
+    // Aparece em cinza quando: filtro "Todas" (null) OU filtro "Sem Registro" ('no-history')
+    // Aparece em cinza mais escuro quando: qualquer outro filtro específico
+    return (activeFilter === null || activeFilter === 'no-history') ? "#c0c0c0" : "#9ca3af";
   }
 
-  // Sistema baseado em PRÓXIMA previsão (dias ATÉ roçar)
-  // Nova paleta de cores personalizada
-  if (area.proximaPrevisao) {
-    const nextDate = new Date(area.proximaPrevisao);
-    nextDate.setHours(0, 0, 0, 0);
-    
-    const daysUntilMowing = Math.floor((nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    // Previsão próxima (0-5 dias) - Verde água
-    if (daysUntilMowing >= 0 && daysUntilMowing <= 5) {
-      return "#009d81";
-    } 
-    // Previsão (6-15 dias) - Azul
-    else if (daysUntilMowing > 5 && daysUntilMowing <= 15) {
-      return "#549ccc";
-    } 
-    // Previsão (16-25 dias) - Rosa escuro
-    else if (daysUntilMowing > 15 && daysUntilMowing <= 25) {
-      return "#a83e6b";
-    } 
-    // Previsão (26-40 dias) - Laranja
-    else if (daysUntilMowing > 25 && daysUntilMowing <= 40) {
-      return "#fe8963";
-    } 
-    // Previsão (41-45 dias) - Vermelho (últimos do ciclo)
-    else if (daysUntilMowing > 40 && daysUntilMowing <= 45) {
-      return "#ea3c27";
-    }
-    // Fora das categorias definidas
-    // Quando filtro "Todas" ativo (null), usar cor laranja
-    // Quando filtro específico ativo, usar cinza
-    else {
-      return activeFilter === null ? "#fe8963" : "#9ca3af";
-    }
-  }
+  // Sistema baseado em ÚLTIMA roçagem (dias DESDE última roçagem)
+  // Nova paleta de cores baseada em tempo decorrido
+  const lastDate = new Date(area.ultimaRocagem);
+  lastDate.setHours(0, 0, 0, 0);
   
-  // Área roçada mas sem previsão definida
-  // Quando filtro "Todas" ativo (null), usar cor laranja
-  // Quando filtro específico ativo, usar cinza
-  return activeFilter === null ? "#fe8963" : "#9ca3af";
+  const daysSince = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Roçado há 1-5 dias - Azul
+  if (daysSince >= 1 && daysSince <= 5) {
+    return "#0086ff";
+  } 
+  // Roçado há 6-15 dias - Verde-azulado
+  else if (daysSince >= 6 && daysSince <= 15) {
+    return "#139b89";
+  } 
+  // Roçado há 16-25 dias - Laranja
+  else if (daysSince >= 16 && daysSince <= 25) {
+    return "#fe8963";
+  } 
+  // Roçado há 26-35 dias - Bege/Marrom claro
+  else if (daysSince >= 26 && daysSince <= 35) {
+    return "#b79689";
+  } 
+  // Roçado há 36-45 dias - Roxo claro
+  else if (daysSince >= 36 && daysSince <= 45) {
+    return "#a08ee9";
+  }
+  // Roçado há mais de 45 dias - Vermelho (atenção)
+  else if (daysSince > 45) {
+    return "#ea3c27";
+  }
+  // Roçado hoje (dia 0)
+  else {
+    return "#0086ff";
+  }
 }
