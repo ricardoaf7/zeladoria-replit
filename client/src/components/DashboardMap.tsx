@@ -206,16 +206,17 @@ export function DashboardMap({
       const color = getAreaColor(area, today, false, activeFilter);
       const isPulsing = area.status === "Em Execução";
 
-      // Criar um ícone div circular arrastável com efeito de gradiente (borda profunda + centro transparente)
+      // Criar um ícone div circular arrastável
       const icon = L.divIcon({
         className: "area-marker",
         html: `<div style="
-          background: radial-gradient(circle at center, transparent 0%, transparent 30%, ${color} 60%, ${color} 100%);
+          background-color: ${color};
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          border: 2px solid ${color};
+          border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          opacity: 0.9;
           cursor: move;
           ${isPulsing ? 'animation: marker-blink 2s ease-in-out infinite;' : ''}
         "></div>`,

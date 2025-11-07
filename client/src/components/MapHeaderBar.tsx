@@ -22,11 +22,11 @@ interface MapHeaderBarProps {
 const categoryFilters = [
   { value: null, label: 'Todas', color: '#94a3b8', shortLabel: 'Todas' },
   { value: 'executing' as const, label: 'Executando', color: '#10b981', shortLabel: 'Exec', isPulsing: true },
-  { value: '0-5' as const, label: '0-5 dias', color: '#10b981', shortLabel: '0-5d' },
-  { value: '6-15' as const, label: '6-15 dias', color: '#34d399', shortLabel: '6-15d' },
-  { value: '16-25' as const, label: '16-25 dias', color: '#6ee7b7', shortLabel: '16-25d' },
-  { value: '26-40' as const, label: '26-40 dias', color: '#a7f3d0', shortLabel: '26-40d' },
-  { value: '41-45' as const, label: '41-45 dias', color: '#ef4444', shortLabel: '41-45d' },
+  { value: '0-5' as const, label: '0-5 dias', color: '#009d81', shortLabel: '0-5d' },
+  { value: '6-15' as const, label: '6-15 dias', color: '#549ccc', shortLabel: '6-15d' },
+  { value: '16-25' as const, label: '16-25 dias', color: '#a83e6b', shortLabel: '16-25d' },
+  { value: '26-40' as const, label: '26-40 dias', color: '#fe8963', shortLabel: '26-40d' },
+  { value: '41-45' as const, label: '41-45 dias', color: '#ea3c27', shortLabel: '41-45d' },
 ];
 
 // Função auxiliar para escapar caracteres especiais de regex
