@@ -17,6 +17,8 @@ interface MapHeaderBarProps {
   totalCount?: number;
   areas?: ServiceArea[];
   onAreaSelect?: (area: ServiceArea) => void;
+  selectedAreaId?: number | null;
+  onClearSelection?: () => void;
 }
 
 const categoryFilters = [
@@ -68,6 +70,8 @@ export function MapHeaderBar({
   totalCount,
   areas = [],
   onAreaSelect,
+  selectedAreaId,
+  onClearSelection,
 }: MapHeaderBarProps) {
   // OTIMIZAÇÃO CRÍTICA: Estado local para input instantâneo
   // Separar estado visual (localValue) da propagação ao dashboard (onSearchChange)
@@ -194,6 +198,9 @@ export function MapHeaderBar({
     }
     onSearchChange('');
     
+    // SEMPRE limpar seleção quando X é clicado
+    onClearSelection?.();
+    
     setShowSuggestions(false);
   };
 
@@ -248,7 +255,7 @@ export function MapHeaderBar({
             data-testid="input-search-areas"
             autoComplete="off"
           />
-          {localValue && (
+          {(localValue || selectedAreaId !== null) && (
             <button
               onClick={handleClearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"

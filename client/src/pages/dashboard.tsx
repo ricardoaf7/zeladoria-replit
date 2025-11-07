@@ -351,6 +351,11 @@ export default function Dashboard() {
             totalCount={rocagemAreas.length}
             areas={filteredRocagemAreas}
             onAreaSelect={handleAreaSelectFromSearch}
+            selectedAreaId={selectedArea?.id ?? null}
+            onClearSelection={() => {
+              setSelectedArea(null);
+              setShowMapCard(false);
+            }}
           />
         )}
         
@@ -455,6 +460,11 @@ export default function Dashboard() {
               totalCount={rocagemAreas.length}
               areas={filteredRocagemAreas}
               onAreaSelect={handleAreaSelectFromSearch}
+              selectedAreaId={selectedArea?.id ?? null}
+              onClearSelection={() => {
+                setSelectedArea(null);
+                setShowMapCard(false);
+              }}
             />
           )}
 
