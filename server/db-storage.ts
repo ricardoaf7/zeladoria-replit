@@ -3,7 +3,7 @@ import { eq, inArray, or, ilike, and, sql, gt, desc } from "drizzle-orm";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import type { ServiceArea, Team, AppConfig, ExportHistory, InsertExportHistory } from "@shared/schema";
-import { serviceAreas, teams, appConfig, exportHistory } from "../db/schema";
+import { serviceAreas, teams, appConfig, exportHistory } from "@shared/schema";
 import type { IStorage } from "./storage";
 
 neonConfig.webSocketConstructor = ws;
