@@ -78,3 +78,22 @@ export type AppConfig = z.infer<typeof appConfigSchema>;
 export const updateAppConfigSchema = appConfigSchema.partial();
 
 export type UpdateAppConfig = z.infer<typeof updateAppConfigSchema>;
+
+// Export History Schema
+export const exportHistorySchema = z.object({
+  id: z.number(),
+  scope: z.enum(["service_areas", "teams", "app_config"]),
+  exportType: z.enum(["full", "incremental"]),
+  recordCount: z.number(),
+  durationMs: z.number().nullable().optional(),
+  exportedAt: z.string(),
+});
+
+export type ExportHistory = z.infer<typeof exportHistorySchema>;
+
+export const insertExportHistorySchema = exportHistorySchema.omit({
+  id: true,
+  exportedAt: true,
+});
+
+export type InsertExportHistory = z.infer<typeof insertExportHistorySchema>;

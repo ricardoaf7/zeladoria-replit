@@ -44,3 +44,12 @@ export const appConfig = pgTable("app_config", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const exportHistory = pgTable("export_history", {
+  id: serial("id").primaryKey(),
+  scope: text("scope").notNull(), // 'service_areas', 'teams', 'app_config'
+  exportType: text("export_type").notNull(), // 'full' or 'incremental'
+  recordCount: integer("record_count").notNull(),
+  durationMs: integer("duration_ms"),
+  exportedAt: timestamp("exported_at").defaultNow().notNull(),
+});
