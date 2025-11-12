@@ -5,11 +5,93 @@ import { z } from "zod";
 import multer from "multer";
 import * as fs from "fs";
 import * as path from "path";
+import type { ServiceArea } from "@shared/schema";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }
 });
+
+// Função para converter ServiceArea[] para CSV compatível com Supabase
+function convertToSupabaseCSV(areas: ServiceArea[]): string {
+  if (areas.length === 0) {
+    return 'id,ordem,sequencia_cadastro,tipo,endereco,bairro,metragem_m2,lat,lng,lote,status,history,polygon,scheduled_date,proxima_previsao,ultima_rocagem,manual_schedule,days_to_complete,servico,registrado_por,data_registro\n';
+  }
+
+  // Headers com nomes de colunas do PostgreSQL
+  const headers = [
+    'id', 'ordem', 'sequencia_cadastro', 'tipo', 'endereco', 'bairro', 
+    'metragem_m2', 'lat', 'lng', 'lote', 'status', 'history', 'polygon',
+    'scheduled_date', 'proxima_previsao', 'ultima_rocagem', 'manual_schedule',
+    'days_to_complete', 'servico', 'registrado_por', 'data_registro'
+  ];
+
+  // Função para escapar valores CSV
+  function escapeCSVValue(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    // Converter arrays/objetos JSONB para formato Supabase
+    if (typeof value === 'object') {
+      // Usar JSON.stringify e escapar aspas duplas
+      const jsonStr = JSON.stringify(value);
+      // Escapar aspas duplas dobrando-as e envolver em aspas
+      return `"${jsonStr.replace(/"/g, '""')}"`;
+    }
+
+    // Converter boolean para string lowercase
+    if (typeof value === 'boolean') {
+      return value ? 'true' : 'false';
+    }
+
+    // Converter números
+    if (typeof value === 'number') {
+      return String(value);
+    }
+
+    // Strings: escapar aspas e vírgulas
+    const str = String(value);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+
+    return str;
+  }
+
+  // Construir CSV
+  let csv = headers.join(',') + '\n';
+
+  for (const area of areas) {
+    const row = [
+      area.id,
+      area.ordem ?? '',
+      area.sequenciaCadastro ?? '',
+      area.tipo ?? '',
+      area.endereco ?? '',
+      area.bairro ?? '',
+      area.metragem_m2 ?? '',
+      area.lat ?? '',
+      area.lng ?? '',
+      area.lote ?? '',
+      area.status ?? '',
+      area.history ?? [],
+      area.polygon ?? null,
+      area.scheduledDate ?? '',
+      area.proximaPrevisao ?? '',
+      area.ultimaRocagem ?? '',
+      area.manualSchedule ?? false,
+      area.daysToComplete ?? '',
+      area.servico ?? '',
+      area.registradoPor ?? '',
+      area.dataRegistro ?? '',
+    ];
+
+    csv += row.map(escapeCSVValue).join(',') + '\n';
+  }
+
+  return csv;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint de backup: exportar todos os dados em JSON
@@ -53,6 +135,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error downloading CSV:", error);
       res.status(500).json({ error: "Falha ao baixar arquivo CSV" });
+    }
+  });
+
+  // Endpoint de exportação CSV para Supabase
+  app.get("/api/export/csv", async (req, res) => {
+    try {
+      const startTime = Date.now();
+      const mode = (req.query.mode as string) || 'full';
+      
+      if (mode !== 'full' && mode !== 'incremental') {
+        res.status(400).json({ error: "Modo inválido. Use 'full' ou 'incremental'" });
+        return;
+      }
+
+      let areas: any[] = [];
+      let wasDefaultedToFull = false;
+
+      if (mode === 'incremental') {
+        // Tentar obter último export
+        const lastExport = await storage.getLastExport('service_areas', 'full');
+        
+        if (!lastExport) {
+          // Se não há histórico, fazer full export como fallback
+          areas = await storage.getAllAreas("rocagem");
+          wasDefaultedToFull = true;
+        } else {
+          // Exportar apenas áreas modificadas desde último export
+          const lastExportDate = new Date(lastExport.exportedAt);
+          areas = await storage.getAreasModifiedSince(lastExportDate);
+        }
+      } else {
+        // Full export: todas as áreas
+        areas = await storage.getAllAreas("rocagem");
+      }
+
+      // Converter para CSV com formato Supabase-compatível
+      const csv = convertToSupabaseCSV(areas);
+      
+      // Gravar histórico de exportação
+      const duration = Date.now() - startTime;
+      await storage.recordExport({
+        scope: 'service_areas',
+        exportType: wasDefaultedToFull ? 'full' : mode as 'full' | 'incremental',
+        recordCount: areas.length,
+        durationMs: duration,
+      });
+
+      // Definir headers para download
+      const filename = `zeladoria_${mode}_${new Date().toISOString().split('T')[0]}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      // Adicionar metadata na response se foi fallback
+      if (wasDefaultedToFull) {
+        res.setHeader('X-Export-Info', 'Primeira exportação - modo incremental convertido para full');
+      }
+      
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      res.status(500).json({ error: "Falha ao exportar CSV" });
     }
   });
 
