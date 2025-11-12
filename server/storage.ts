@@ -1,4 +1,4 @@
-import type { ServiceArea, Team, AppConfig } from "@shared/schema";
+import type { ServiceArea, Team, AppConfig, ExportHistory, InsertExportHistory } from "@shared/schema";
 
 export interface IStorage {
   // Service Areas
@@ -22,6 +22,11 @@ export interface IStorage {
   // Configuration
   getConfig(): Promise<AppConfig>;
   updateConfig(config: Partial<AppConfig>): Promise<AppConfig>;
+  
+  // Export History
+  getLastExport(scope: string, type: 'full' | 'incremental'): Promise<ExportHistory | null>;
+  recordExport(data: InsertExportHistory): Promise<ExportHistory>;
+  getAreasModifiedSince(timestamp: Date): Promise<ServiceArea[]>;
 }
 
 // Função legada de cálculo de agendamento - DEPRECADA
@@ -335,6 +340,29 @@ export class MemStorage implements IStorage {
     }
     
     return areas.length;
+  }
+
+  // Export History Methods
+  async getLastExport(scope: string, type: 'full' | 'incremental'): Promise<ExportHistory | null> {
+    // MemStorage: Não persiste histórico de exportação
+    return null;
+  }
+
+  async recordExport(data: InsertExportHistory): Promise<ExportHistory> {
+    // MemStorage: Simula gravação de histórico
+    return {
+      id: Math.floor(Math.random() * 10000),
+      scope: data.scope,
+      exportType: data.exportType,
+      recordCount: data.recordCount,
+      durationMs: data.durationMs ?? null,
+      exportedAt: new Date().toISOString(),
+    };
+  }
+
+  async getAreasModifiedSince(timestamp: Date): Promise<ServiceArea[]> {
+    // MemStorage: Retorna todas as áreas (não rastreia modificação)
+    return this.rocagemAreas;
   }
 }
 

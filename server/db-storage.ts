@@ -1,9 +1,9 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
-import { eq, inArray, or, ilike, and, sql } from "drizzle-orm";
+import { eq, inArray, or, ilike, and, sql, gt, desc } from "drizzle-orm";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
-import type { ServiceArea, Team, AppConfig } from "@shared/schema";
-import { serviceAreas, teams, appConfig } from "../db/schema";
+import type { ServiceArea, Team, AppConfig, ExportHistory, InsertExportHistory } from "@shared/schema";
+import { serviceAreas, teams, appConfig, exportHistory } from "../db/schema";
 import type { IStorage } from "./storage";
 
 neonConfig.webSocketConstructor = ws;
@@ -309,6 +309,69 @@ export class DbStorage implements IStorage {
     }
     
     return areas.length;
+  }
+
+  // Export History Methods
+  async getLastExport(scope: string, type: 'full' | 'incremental'): Promise<ExportHistory | null> {
+    const results = await this.db
+      .select()
+      .from(exportHistory)
+      .where(
+        and(
+          eq(exportHistory.scope, scope),
+          eq(exportHistory.exportType, type)
+        )
+      )
+      .orderBy(desc(exportHistory.exportedAt))
+      .limit(1);
+
+    if (results.length === 0) return null;
+
+    const record = results[0];
+    return {
+      id: record.id,
+      scope: record.scope as 'service_areas' | 'teams' | 'app_config',
+      exportType: record.exportType as 'full' | 'incremental',
+      recordCount: record.recordCount,
+      durationMs: record.durationMs ?? null,
+      exportedAt: record.exportedAt?.toISOString() ?? new Date().toISOString(),
+    };
+  }
+
+  async recordExport(data: InsertExportHistory): Promise<ExportHistory> {
+    const results = await this.db
+      .insert(exportHistory)
+      .values({
+        scope: data.scope,
+        exportType: data.exportType,
+        recordCount: data.recordCount,
+        durationMs: data.durationMs ?? null,
+      })
+      .returning();
+
+    const record = results[0];
+    return {
+      id: record.id,
+      scope: record.scope as 'service_areas' | 'teams' | 'app_config',
+      exportType: record.exportType as 'full' | 'incremental',
+      recordCount: record.recordCount,
+      durationMs: record.durationMs ?? null,
+      exportedAt: record.exportedAt?.toISOString() ?? new Date().toISOString(),
+    };
+  }
+
+  async getAreasModifiedSince(timestamp: Date): Promise<ServiceArea[]> {
+    const results = await this.db
+      .select()
+      .from(serviceAreas)
+      .where(
+        and(
+          eq(serviceAreas.servico, 'rocagem'),
+          gt(serviceAreas.updatedAt, timestamp)
+        )
+      );
+
+    return results.map(this.mapDbAreaToServiceArea);
   }
 
   private mapDbAreaToServiceArea(dbArea: any): ServiceArea {
