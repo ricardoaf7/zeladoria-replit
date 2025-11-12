@@ -6,6 +6,7 @@ import { MapInfoCard } from "@/components/MapInfoCard";
 import { QuickRegisterModal } from "@/components/QuickRegisterModal";
 import { ManualForecastModal } from "@/components/ManualForecastModal";
 import { MapHeaderBar } from "@/components/MapHeaderBar";
+import { ExportDialog } from "@/components/ExportDialog";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { BottomSheet, type BottomSheetState } from "@/components/BottomSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -14,7 +15,7 @@ import type { ServiceArea, AppConfig } from "@shared/schema";
 import type { FilterCriteria } from "@/components/FilterPanel";
 import type { TimeRangeFilter } from "@/components/MapLegend";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import L from "leaflet";
 
@@ -36,6 +37,7 @@ export default function Dashboard() {
   });
   const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRangeFilter>(null);
   const [customFilterDateRange, setCustomFilterDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const ignoreSearchClearRef = useRef(false); // Flag para ignorar limpeza após seleção
 
@@ -331,10 +333,19 @@ export default function Dashboard() {
               variant="ghost"
               size="icon"
               onClick={handleBackupDownload}
-              aria-label="Exportar backup"
+              aria-label="Exportar backup JSON"
               data-testid="button-backup"
             >
               <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowExportDialog(true)}
+              aria-label="Exportar CSV para Supabase"
+              data-testid="button-export-csv"
+            >
+              <FileText className="h-4 w-4" />
             </Button>
             <ThemeToggle />
           </div>
@@ -440,10 +451,19 @@ export default function Dashboard() {
                 variant="ghost"
                 size="icon"
                 onClick={handleBackupDownload}
-                aria-label="Exportar backup"
+                aria-label="Exportar backup JSON"
                 data-testid="button-backup"
               >
                 <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowExportDialog(true)}
+                aria-label="Exportar CSV para Supabase"
+                data-testid="button-export-csv"
+              >
+                <FileText className="h-4 w-4" />
               </Button>
               <ThemeToggle />
             </div>
@@ -512,6 +532,12 @@ export default function Dashboard() {
         area={selectedArea}
         open={showManualForecastModal}
         onOpenChange={setShowManualForecastModal}
+      />
+
+      {/* Modal de exportação CSV */}
+      <ExportDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
       />
     </SidebarProvider>
   );
