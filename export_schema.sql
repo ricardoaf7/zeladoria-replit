@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.9 (165f042)
+-- Dumped from database version 16.9 (415ebe8)
 -- Dumped by pg_dump version 16.9
 
 SET statement_timeout = 0;
@@ -50,6 +50,40 @@ CREATE SEQUENCE public.app_config_id_seq
 --
 
 ALTER SEQUENCE public.app_config_id_seq OWNED BY public.app_config.id;
+
+
+--
+-- Name: export_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.export_history (
+    id integer NOT NULL,
+    scope text NOT NULL,
+    export_type text NOT NULL,
+    record_count integer NOT NULL,
+    duration_ms integer,
+    exported_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: export_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.export_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: export_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.export_history_id_seq OWNED BY public.export_history.id;
 
 
 --
@@ -148,6 +182,13 @@ ALTER TABLE ONLY public.app_config ALTER COLUMN id SET DEFAULT nextval('public.a
 
 
 --
+-- Name: export_history id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_history ALTER COLUMN id SET DEFAULT nextval('public.export_history_id_seq'::regclass);
+
+
+--
 -- Name: service_areas id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -167,6 +208,14 @@ ALTER TABLE ONLY public.teams ALTER COLUMN id SET DEFAULT nextval('public.teams_
 
 ALTER TABLE ONLY public.app_config
     ADD CONSTRAINT app_config_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: export_history export_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_history
+    ADD CONSTRAINT export_history_pkey PRIMARY KEY (id);
 
 
 --
