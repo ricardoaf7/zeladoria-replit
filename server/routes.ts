@@ -310,6 +310,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Criar nova área de serviço
+  app.post("/api/areas", async (req, res) => {
+    try {
+      const createSchema = z.object({
+        tipo: z.string().min(1, "Tipo é obrigatório"),
+        endereco: z.string().min(1, "Endereço é obrigatório"),
+        bairro: z.string().optional(),
+        metragem_m2: z.number().positive().optional(),
+        lat: z.number().min(-90).max(90),
+        lng: z.number().min(-180).max(180),
+        lote: z.number().int().positive().optional(),
+        servico: z.string().default("rocagem"),
+        status: z.enum(["Pendente", "Em Execução", "Concluído"]).default("Pendente"),
+      });
+
+      const validatedData = createSchema.parse(req.body);
+      
+      const newArea = await storage.createArea({
+        ...validatedData,
+        ordem: undefined,
+        sequenciaCadastro: undefined,
+        history: [],
+        polygon: null,
+        scheduledDate: null,
+        proximaPrevisao: null,
+        ultimaRocagem: null,
+        manualSchedule: false,
+        daysToComplete: undefined,
+        registradoPor: null,
+        dataRegistro: null,
+      });
+
+      res.status(201).json(newArea);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          error: "Dados inválidos", 
+          details: error.errors 
+        });
+        return;
+      }
+      console.error("Error creating area:", error);
+      res.status(500).json({ error: "Falha ao criar área" });
+    }
+  });
+
+  // Geocoding: buscar endereços em Londrina (Nominatim/OSM)
+  app.get("/api/geocode/search", async (req, res) => {
+    try {
+      const query = (req.query.q as string || "").trim();
+      
+      if (!query || query.length < 3) {
+        res.json([]);
+        return;
+      }
+
+      // Usar Nominatim (OpenStreetMap) para geocoding
+      const encodedQuery = encodeURIComponent(`${query}, Londrina, Paraná, Brasil`);
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?` +
+        `q=${encodedQuery}&format=json&limit=8&` +
+        `countrycodes=br&bounded=1&` +
+        `viewbox=-51.22,-23.25,-51.10,-23.38`;
+
+      const response = await fetch(nominatimUrl, {
+        headers: {
+          'User-Agent': 'CMTU-LD Zeladoria Dashboard'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Nominatim API error: ${response.status}`);
+      }
+
+      const results = await response.json();
+      
+      // Formatar resultados
+      const formatted = results.map((r: any) => ({
+        display_name: r.display_name,
+        lat: parseFloat(r.lat),
+        lng: parseFloat(r.lon),
+        type: r.type,
+        address: r.address,
+        boundingbox: r.boundingbox,
+      }));
+
+      res.json(formatted);
+    } catch (error) {
+      console.error("Error geocoding:", error);
+      res.status(500).json({ error: "Falha ao buscar endereço" });
+    }
+  });
+
+  // Reverse Geocoding: obter endereço a partir de coordenadas
+  app.get("/api/geocode/reverse", async (req, res) => {
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lng = parseFloat(req.query.lng as string);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        res.status(400).json({ error: "Coordenadas inválidas" });
+        return;
+      }
+
+      const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?` +
+        `lat=${lat}&lon=${lng}&format=json`;
+
+      const response = await fetch(nominatimUrl, {
+        headers: {
+          'User-Agent': 'CMTU-LD Zeladoria Dashboard'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Nominatim API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      res.json({
+        display_name: result.display_name,
+        address: result.address,
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon),
+      });
+    } catch (error) {
+      console.error("Error reverse geocoding:", error);
+      res.status(500).json({ error: "Falha ao obter endereço" });
+    }
+  });
+
   app.get("/api/teams", async (req, res) => {
     try {
       const teams = await storage.getAllTeams();

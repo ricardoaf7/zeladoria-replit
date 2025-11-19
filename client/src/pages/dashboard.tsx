@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { MapInfoCard } from "@/components/MapInfoCard";
 import { QuickRegisterModal } from "@/components/QuickRegisterModal";
 import { ManualForecastModal } from "@/components/ManualForecastModal";
+import { NewAreaModal } from "@/components/NewAreaModal";
 import { MapHeaderBar } from "@/components/MapHeaderBar";
 import { ExportDialog } from "@/components/ExportDialog";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
@@ -26,6 +27,8 @@ export default function Dashboard() {
   const [showMapCard, setShowMapCard] = useState(false);
   const [showQuickRegisterModal, setShowQuickRegisterModal] = useState(false);
   const [showManualForecastModal, setShowManualForecastModal] = useState(false);
+  const [showNewAreaModal, setShowNewAreaModal] = useState(false);
+  const [newAreaCoords, setNewAreaCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedService, setSelectedService] = useState<string>('');
   const [bottomSheetState, setBottomSheetState] = useState<BottomSheetState>("minimized");
   const [filters, setFilters] = useState<FilterCriteria>({
@@ -271,6 +274,11 @@ export default function Dashboard() {
     setShowManualForecastModal(true);
   };
 
+  const handleMapClick = (lat: number, lng: number) => {
+    setNewAreaCoords({ lat, lng });
+    setShowNewAreaModal(true);
+  };
+
   const handleAreaUpdate = (updatedArea: ServiceArea) => {
     setSelectedArea(updatedArea);
   };
@@ -380,6 +388,7 @@ export default function Dashboard() {
               jardins: selectedService === 'jardins',
             }}
             onAreaClick={handleAreaClick}
+            onMapClick={handleMapClick}
             filteredAreaIds={hasActiveFilters ? new Set(filteredRocagemAreas.map(a => a.id)) : undefined}
             mapRef={mapRef}
             searchQuery={filters.search}
@@ -421,6 +430,16 @@ export default function Dashboard() {
             open={showQuickRegisterModal}
             onOpenChange={setShowQuickRegisterModal}
           />
+
+          {/* Modal de cadastro de nova área */}
+          {newAreaCoords && (
+            <NewAreaModal
+              open={showNewAreaModal}
+              onOpenChange={setShowNewAreaModal}
+              lat={newAreaCoords.lat}
+              lng={newAreaCoords.lng}
+            />
+          )}
         </main>
       </div>
     );
@@ -498,6 +517,7 @@ export default function Dashboard() {
                 jardins: selectedService === 'jardins',
               }}
               onAreaClick={handleAreaClick}
+              onMapClick={handleMapClick}
               filteredAreaIds={hasActiveFilters ? new Set(filteredRocagemAreas.map(a => a.id)) : undefined}
               searchQuery={filters.search}
               mapRef={mapRef}
@@ -539,6 +559,16 @@ export default function Dashboard() {
         open={showExportDialog}
         onOpenChange={setShowExportDialog}
       />
+
+      {/* Modal de cadastro de nova área */}
+      {newAreaCoords && (
+        <NewAreaModal
+          open={showNewAreaModal}
+          onOpenChange={setShowNewAreaModal}
+          lat={newAreaCoords.lat}
+          lng={newAreaCoords.lng}
+        />
+      )}
     </SidebarProvider>
   );
 }

@@ -37,6 +37,38 @@ export class DbStorage implements IStorage {
     return this.mapDbAreaToServiceArea(results[0]);
   }
 
+  async createArea(data: Omit<ServiceArea, 'id'>): Promise<ServiceArea> {
+    const insertData: any = {
+      ordem: data.ordem ?? null,
+      sequenciaCadastro: data.sequenciaCadastro ?? null,
+      tipo: data.tipo,
+      endereco: data.endereco,
+      bairro: data.bairro ?? null,
+      metragem_m2: data.metragem_m2 ?? null,
+      lat: data.lat,
+      lng: data.lng,
+      lote: data.lote ?? null,
+      status: data.status || "Pendente",
+      history: data.history || [],
+      polygon: data.polygon ?? null,
+      scheduledDate: data.scheduledDate ?? null,
+      proximaPrevisao: data.proximaPrevisao ?? null,
+      ultimaRocagem: data.ultimaRocagem ?? null,
+      manualSchedule: data.manualSchedule ?? false,
+      daysToComplete: data.daysToComplete ?? null,
+      servico: data.servico ?? "rocagem",
+      registradoPor: data.registradoPor ?? null,
+      dataRegistro: data.dataRegistro ? new Date(data.dataRegistro) : null,
+    };
+
+    const results = await this.db
+      .insert(serviceAreas)
+      .values(insertData)
+      .returning();
+
+    return this.mapDbAreaToServiceArea(results[0]);
+  }
+
   async searchAreas(query: string, serviceType: string, limit: number = 50): Promise<ServiceArea[]> {
     const searchTerm = `%${query.toLowerCase()}%`;
     

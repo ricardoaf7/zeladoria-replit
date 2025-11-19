@@ -4,6 +4,7 @@ export interface IStorage {
   // Service Areas
   getAllAreas(serviceType: string): Promise<ServiceArea[]>;
   getAreaById(id: number): Promise<ServiceArea | undefined>;
+  createArea(data: Omit<ServiceArea, 'id'>): Promise<ServiceArea>;
   searchAreas(query: string, serviceType: string, limit?: number): Promise<ServiceArea[]>;
   updateAreaStatus(id: number, status: string): Promise<ServiceArea | undefined>;
   updateAreaSchedule(id: number, scheduledDate: string): Promise<ServiceArea | undefined>;
@@ -173,6 +174,25 @@ export class MemStorage implements IStorage {
 
   async getAreaById(id: number): Promise<ServiceArea | undefined> {
     return [...this.rocagemAreas, ...this.jardinsAreas].find(a => a.id === id);
+  }
+
+  async createArea(data: Omit<ServiceArea, 'id'>): Promise<ServiceArea> {
+    const allAreas = [...this.rocagemAreas, ...this.jardinsAreas];
+    const maxId = allAreas.length > 0 ? Math.max(...allAreas.map(a => a.id)) : 0;
+    const newArea: ServiceArea = {
+      ...data,
+      id: maxId + 1,
+      history: data.history || [],
+      status: data.status || "Pendente",
+    };
+
+    if (data.servico === "rocagem" || !data.servico) {
+      this.rocagemAreas.push(newArea);
+    } else if (data.servico === "jardins") {
+      this.jardinsAreas.push(newArea);
+    }
+
+    return newArea;
   }
 
   async searchAreas(query: string, serviceType: string, limit: number = 50): Promise<ServiceArea[]> {

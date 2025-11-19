@@ -18,6 +18,7 @@ interface DashboardMapProps {
     jardins: boolean;
   };
   onAreaClick: (area: ServiceArea) => void;
+  onMapClick?: (lat: number, lng: number) => void;
   mapRef?: React.MutableRefObject<L.Map | null>;
   filteredAreaIds?: Set<number>;
   searchQuery?: string;
@@ -31,6 +32,7 @@ export function DashboardMap({
   jardinsAreas,
   layerFilters,
   onAreaClick,
+  onMapClick,
   mapRef: externalMapRef,
   filteredAreaIds,
   searchQuery = '',
@@ -125,6 +127,15 @@ export function DashboardMap({
 
     mapRef.current = map;
 
+    // Listener para cliques no mapa (cadastrar nova área)
+    if (onMapClick) {
+      map.on('click', (e: L.LeafletMouseEvent) => {
+        // Só disparar se o clique foi no mapa, não em um marcador
+        // O Leaflet automaticamente previne a propagação se clicar em um marcador
+        onMapClick(e.latlng.lat, e.latlng.lng);
+      });
+    }
+
     // Listener para atualizar bounds quando o mapa se mover
     const handleBoundsChange = () => {
       if (onBoundsChange) {
@@ -148,7 +159,7 @@ export function DashboardMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [onBoundsChange]);
+  }, [onBoundsChange, onMapClick]);
 
   useEffect(() => {
     if (!mapRef.current) return;
