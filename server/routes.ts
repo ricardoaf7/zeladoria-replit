@@ -6,11 +6,17 @@ import multer from "multer";
 import * as fs from "fs";
 import * as path from "path";
 import type { ServiceArea } from "@shared/schema";
+import { randomUUID } from "crypto";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }
 });
+
+const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Função para converter ServiceArea[] para CSV compatível com Supabase
 function convertToSupabaseCSV(areas: ServiceArea[]): string {
@@ -94,6 +100,31 @@ function convertToSupabaseCSV(areas: ServiceArea[]): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Endpoint para upload de fotos
+  app.post("/api/photo/upload", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Nenhum arquivo enviado" });
+      }
+
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const validExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      if (!validExts.includes(ext)) {
+        return res.status(400).json({ error: "Tipo de arquivo não permitido" });
+      }
+
+      const filename = `${randomUUID()}${ext}`;
+      const filepath = path.join(uploadDir, filename);
+      
+      fs.writeFileSync(filepath, req.file.buffer);
+      
+      res.json({ url: `/uploads/${filename}` });
+    } catch (error) {
+      console.error("Photo upload error:", error);
+      res.status(500).json({ error: "Falha ao fazer upload" });
+    }
+  });
+
   // Endpoint de backup: exportar todos os dados em JSON
   app.get("/api/backup", async (req, res) => {
     try {

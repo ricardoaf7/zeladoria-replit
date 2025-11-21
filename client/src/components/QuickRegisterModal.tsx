@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, CheckCircle2, Camera, X } from "lucide-react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -30,14 +30,52 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
   const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [inputValue, setInputValue] = useState<string>("");
+  const [fotoAntes, setFotoAntes] = useState<string | null>(null);
+  const [fotoDepois, setFotoDepois] = useState<string | null>(null);
+  const [uploadingAntes, setUploadingAntes] = useState(false);
+  const [uploadingDepois, setUploadingDepois] = useState(false);
 
   // Resetar data para hoje quando modal fechar
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setDate(new Date()); // Reset para hoje ao fechar
       setInputValue(""); // Limpar input
+      setFotoAntes(null);
+      setFotoDepois(null);
     }
     onOpenChange(newOpen);
+  };
+
+  const handlePhotoCapture = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setPhoto: (url: string) => void,
+    setUploading: (val: boolean) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/photo/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Falha ao fazer upload");
+      const data = await res.json() as { url: string };
+      setPhoto(data.url);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erro no Upload",
+        description: "Não foi possível fazer upload da foto.",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Atualizar input quando data muda via calendário
@@ -145,6 +183,8 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
       const res = await apiRequest("PATCH", `/api/areas/${area.id}`, {
         ultimaRocagem: data.date,
         status: "Pendente",
+        fotoAntes: fotoAntes || null,
+        fotoDepois: fotoDepois || null,
       });
       return await res.json() as ServiceArea;
     },
@@ -193,6 +233,73 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Fotos (opcional)</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="border-2 border-dashed rounded-lg p-2">
+                  {fotoAntes ? (
+                    <div className="relative">
+                      <img src={fotoAntes} alt="Antes" className="w-full h-20 object-cover rounded" />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute top-0 right-0 h-5 w-5"
+                        onClick={() => setFotoAntes(null)}
+                        data-testid="button-remove-foto-antes"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-20 cursor-pointer hover:bg-muted">
+                      <Camera className="h-4 w-4 mb-1" />
+                      <span className="text-xs text-center">Antes</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handlePhotoCapture(e, setFotoAntes, setUploadingAntes)}
+                        disabled={uploadingAntes}
+                        data-testid="input-foto-antes"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                <div className="border-2 border-dashed rounded-lg p-2">
+                  {fotoDepois ? (
+                    <div className="relative">
+                      <img src={fotoDepois} alt="Depois" className="w-full h-20 object-cover rounded" />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute top-0 right-0 h-5 w-5"
+                        onClick={() => setFotoDepois(null)}
+                        data-testid="button-remove-foto-depois"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-20 cursor-pointer hover:bg-muted">
+                      <Camera className="h-4 w-4 mb-1" />
+                      <span className="text-xs text-center">Depois</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handlePhotoCapture(e, setFotoDepois, setUploadingDepois)}
+                        disabled={uploadingDepois}
+                        data-testid="input-foto-depois"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="date-input">Data da Roçagem</Label>
             
