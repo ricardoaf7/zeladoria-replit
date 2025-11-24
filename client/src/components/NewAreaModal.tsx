@@ -37,6 +37,7 @@ interface NewAreaModalProps {
   onOpenChange: (open: boolean) => void;
   lat: number;
   lng: number;
+  defaultServico?: "rocagem" | "jardins";
 }
 
 const newAreaSchema = z.object({
@@ -50,7 +51,7 @@ const newAreaSchema = z.object({
 
 type NewAreaFormData = z.infer<typeof newAreaSchema>;
 
-export function NewAreaModal({ open, onOpenChange, lat, lng }: NewAreaModalProps) {
+export function NewAreaModal({ open, onOpenChange, lat, lng, defaultServico = "rocagem" }: NewAreaModalProps) {
   const { toast } = useToast();
   
   const form = useForm<NewAreaFormData>({
@@ -61,7 +62,7 @@ export function NewAreaModal({ open, onOpenChange, lat, lng }: NewAreaModalProps
       bairro: "",
       metragem_m2: "",
       lote: "1",
-      servico: "rocagem",
+      servico: defaultServico,
     },
   });
 
@@ -107,7 +108,14 @@ export function NewAreaModal({ open, onOpenChange, lat, lng }: NewAreaModalProps
   // Resetar formulário ao fechar
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      form.reset();
+      form.reset({
+        tipo: "area publica",
+        endereco: "",
+        bairro: "",
+        metragem_m2: "",
+        lote: "1",
+        servico: defaultServico,
+      });
     }
     onOpenChange(newOpen);
   };

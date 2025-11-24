@@ -120,7 +120,7 @@ export function AppSidebar({
                     data-testid="service-rocagem"
                   >
                     <Scissors className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                    <span className="text-left">Capina e Roçagem de Áreas Públicas</span>
+                    <span className="text-left">Capina e Roçagem</span>
                   </button>
                   
                   <AnimatePresence>

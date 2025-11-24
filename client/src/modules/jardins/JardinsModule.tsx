@@ -72,6 +72,7 @@ export function JardinsModule({ jardinsAreas }: JardinsModuleProps) {
           open={state.showNewAreaModal}
           lat={state.newAreaCoords.lat}
           lng={state.newAreaCoords.lng}
+          defaultServico="jardins"
           onOpenChange={(open) => {
             state.setShowNewAreaModal(open);
             if (!open) {

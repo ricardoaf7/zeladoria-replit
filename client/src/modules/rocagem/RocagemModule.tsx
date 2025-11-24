@@ -81,6 +81,7 @@ export function RocagemModule({ rocagemAreas }: RocagemModuleProps) {
           open={state.showNewAreaModal}
           lat={state.newAreaCoords.lat}
           lng={state.newAreaCoords.lng}
+          defaultServico="rocagem"
           onOpenChange={(open) => {
             state.setShowNewAreaModal(open);
             if (!open) {
