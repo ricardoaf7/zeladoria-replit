@@ -1,8 +1,12 @@
-# CMTU-LD Operations Dashboard
+# CMTU-LD Operations Dashboard - "Zeladoria em Tempo Real"
+
+## 🏗️ Arquitetura Modular (v1.0 - Nov 2025)
+
+**IMPORTANTE**: Sistema refatorado para isolamento completo de módulos. Cada serviço (Rocagem, Jardins, etc.) é independente. Ao trocar de serviço, o anterior é 100% desmontado. Veja `DIRETRIZES_ARQUITETURA.md` e `MODULOS_GUIA_PRATICO.md` para detalhes.
 
 ## Overview
 
-This full-stack web application, branded as "Zeladoria LD," is an operational dashboard for CMTU-LD in Londrina, Brazil. It monitors and manages urban services like mowing and garden maintenance across 1125+ service areas through a map-centric interface. The primary users are the Mayor and city officials, who require real-time visibility into service status, scheduling, and team deployment. The application features interactive mapping, service area management, automated scheduling, and team assignment, with all content presented in Brazilian Portuguese. It is also implemented as a Progressive Web App (PWA) for native-like mobile experience.
+This full-stack web application, branded as "Zeladoria em Tempo Real," is an operational dashboard for CMTU-LD in Londrina, Brazil. It monitors and manages urban services like mowing and garden maintenance across 1125+ service areas through a map-centric interface. The primary users are the Mayor and city officials, who require real-time visibility into service status, scheduling, and team deployment. The application features interactive mapping, service area management, automated scheduling, and team assignment, with all content presented in Brazilian Portuguese. It is also implemented as a Progressive Web App (PWA) for native-like mobile experience.
 
 ## User Preferences
 
