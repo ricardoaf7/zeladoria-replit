@@ -107,33 +107,91 @@ export function PhotoGalleryModal({
     },
   });
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // Validar tipo de arquivo
     const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        variant: "destructive",
-        title: "Arquivo Inválido",
-        description: "Use JPG, PNG, GIF ou WebP.",
-      });
-      return;
+    const filesToUpload: File[] = [];
+
+    // Validar todos os arquivos
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      if (!validTypes.includes(file.type)) {
+        toast({
+          variant: "destructive",
+          title: `Arquivo ${file.name} Inválido`,
+          description: "Use JPG, PNG, GIF ou WebP.",
+        });
+        continue;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: `Arquivo ${file.name} Muito Grande`,
+          description: "Máximo 10MB.",
+        });
+        continue;
+      }
+
+      filesToUpload.push(file);
     }
 
-    // Validar tamanho (máximo 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "Arquivo Muito Grande",
-        description: "Máximo 10MB.",
-      });
-      return;
-    }
+    if (filesToUpload.length === 0) return;
 
+    // Upload de todos os arquivos em paralelo
     setIsUploading(true);
-    uploadPhotoMutation.mutate(file);
+    try {
+      const uploadPromises = filesToUpload.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/photo/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error(`Upload failed for ${file.name}`);
+        const data = await res.json();
+        return data.url;
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      
+      const currentFotos = area.fotos || [];
+      const newPhotos = urls.map((url) => ({
+        url,
+        data: new Date().toISOString(),
+      }));
+      const updatedFotos = [...currentFotos, ...newPhotos];
+
+      const res = await apiRequest("PATCH", `/api/areas/${area.id}`, {
+        fotos: updatedFotos,
+      });
+
+      if (res.ok) {
+        toast({
+          title: `${filesToUpload.length} Foto${filesToUpload.length !== 1 ? "s" : ""} Adicionada${filesToUpload.length !== 1 ? "s" : ""}`,
+          description: "As fotos foram enviadas com sucesso.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+        queryClient.invalidateQueries({ queryKey: ["/api/areas/light"] });
+        // Limpar input
+        const input = document.getElementById("photo-input") as HTMLInputElement;
+        if (input) input.value = "";
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro no Upload",
+        description: "Falha ao enviar as fotos.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const fotos = area.fotos || [];
@@ -156,13 +214,14 @@ export function PhotoGalleryModal({
           <label htmlFor="photo-input" className="flex flex-col items-center justify-center cursor-pointer gap-2">
             <Upload className="h-6 w-6 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">
-              {isUploading ? "Enviando..." : "Clique para enviar uma foto"}
+              {isUploading ? "Enviando fotos..." : "Clique para enviar fotos"}
             </span>
-            <span className="text-xs text-muted-foreground">JPG, PNG, GIF ou WebP (máx. 10MB)</span>
+            <span className="text-xs text-muted-foreground">Envie uma ou múltiplas fotos (JPG, PNG, GIF, WebP - máx. 10MB cada)</span>
             <input
               id="photo-input"
               type="file"
               accept="image/*"
+              multiple
               onChange={handleFileSelect}
               disabled={isUploading}
               className="hidden"
