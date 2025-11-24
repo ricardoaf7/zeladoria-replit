@@ -1,0 +1,230 @@
+import { useState } from "react";
+import { Upload, X, Calendar, Image as ImageIcon } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import type { ServiceArea } from "@shared/schema";
+import { formatDateBR } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+interface PhotoGalleryModalProps {
+  area: ServiceArea;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function PhotoGalleryModal({
+  area,
+  open,
+  onOpenChange,
+}: PhotoGalleryModalProps) {
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/photo/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      return data.url;
+    },
+    onSuccess: async (photoUrl) => {
+      const photoData = {
+        url: photoUrl,
+        data: new Date().toISOString(),
+      };
+
+      const currentFotos = area.fotos || [];
+      const updatedFotos = [...currentFotos, photoData];
+
+      const res = await apiRequest("PATCH", `/api/areas/${area.id}`, {
+        fotos: updatedFotos,
+      });
+
+      if (res.ok) {
+        toast({
+          title: "Foto Adicionada",
+          description: "A foto foi enviada com sucesso.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+        queryClient.invalidateQueries({ queryKey: ["/api/areas/light"] });
+      }
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Erro no Upload",
+        description: "Falha ao enviar a foto.",
+      });
+    },
+    onSettled: () => {
+      setIsUploading(false);
+    },
+  });
+
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (photoUrl: string) => {
+      const currentFotos = area.fotos || [];
+      const updatedFotos = currentFotos.filter((p) => p.url !== photoUrl);
+
+      const res = await apiRequest("PATCH", `/api/areas/${area.id}`, {
+        fotos: updatedFotos,
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Foto Removida",
+        description: "A foto foi deletada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/areas/light"] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Deletar",
+        description: "Falha ao remover a foto.",
+      });
+    },
+  });
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        variant: "destructive",
+        title: "Arquivo Inválido",
+        description: "Use JPG, PNG, GIF ou WebP.",
+      });
+      return;
+    }
+
+    // Validar tamanho (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Arquivo Muito Grande",
+        description: "Máximo 10MB.",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    uploadPhotoMutation.mutate(file);
+  };
+
+  const fotos = area.fotos || [];
+  const sortedFotos = [...fotos].sort(
+    (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-photo-gallery">
+        <DialogHeader>
+          <DialogTitle data-testid="text-photo-gallery-title">Galeria de Fotos</DialogTitle>
+          <DialogDescription data-testid="text-photo-gallery-desc">
+            {area.endereco}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Área de Upload */}
+        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+          <label htmlFor="photo-input" className="flex flex-col items-center justify-center cursor-pointer gap-2">
+            <Upload className="h-6 w-6 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">
+              {isUploading ? "Enviando..." : "Clique para enviar uma foto"}
+            </span>
+            <span className="text-xs text-muted-foreground">JPG, PNG, GIF ou WebP (máx. 10MB)</span>
+            <input
+              id="photo-input"
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+              className="hidden"
+              data-testid="input-photo-file"
+            />
+          </label>
+        </div>
+
+        <Separator />
+
+        {/* Galeria de Fotos */}
+        {fotos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <ImageIcon className="h-8 w-8 mb-2" />
+            <p className="text-sm">Nenhuma foto ainda.</p>
+            <p className="text-xs">Envie sua primeira foto acima.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {sortedFotos.map((foto) => (
+              <div
+                key={foto.url}
+                className="relative group rounded-lg overflow-hidden border"
+                data-testid={`photo-card-${foto.url}`}
+              >
+                <img
+                  src={foto.url}
+                  alt="Galeria"
+                  className="w-full h-40 object-cover"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex flex-col items-center justify-between p-2 opacity-0 group-hover:opacity-100">
+                  <Button
+                    onClick={() => deletePhotoMutation.mutate(foto.url)}
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-white hover:bg-red-600/80"
+                    disabled={deletePhotoMutation.isPending}
+                    data-testid={`button-delete-photo-${foto.url}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white text-xs flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {formatDateBR(foto.data)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Resumo */}
+        {fotos.length > 0 && (
+          <>
+            <Separator />
+            <div className="flex justify-between items-center text-xs text-muted-foreground">
+              <span>Total de fotos: {fotos.length}</span>
+              <Badge variant="outline">{fotos.length} foto{fotos.length !== 1 ? "s" : ""}</Badge>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

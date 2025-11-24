@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2 } from "lucide-react";
+import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { formatDateBR } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PhotoGalleryModal } from "@/components/PhotoGalleryModal";
 
 interface MapInfoCardProps {
   area: ServiceArea;
@@ -32,6 +33,7 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false);
 
   const deleteAreaMutation = useMutation({
     mutationFn: async () => {
@@ -251,6 +253,16 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 Registrar Roçagem
               </Button>
+
+              <Button
+                onClick={() => setShowPhotoGallery(true)}
+                variant="outline"
+                className="w-full h-9"
+                data-testid="button-open-photo-gallery"
+              >
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Fotos
+              </Button>
               
               <Button
                 onClick={onSetManualForecast}
@@ -344,6 +356,12 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
             </div>
           </AlertDialogContent>
         </AlertDialog>
+
+        <PhotoGalleryModal
+          area={area}
+          open={showPhotoGallery}
+          onOpenChange={setShowPhotoGallery}
+        />
       </CardContent>
     </Card>
   );

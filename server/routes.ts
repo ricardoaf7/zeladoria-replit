@@ -416,6 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         daysToComplete: undefined,
         registradoPor: null,
         dataRegistro: null,
+        fotos: [],
       });
 
       res.status(201).json(newArea);

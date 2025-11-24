@@ -36,8 +36,10 @@ export const serviceAreaSchema = z.object({
   servico: z.string().optional(),
   registradoPor: z.string().nullable().optional(),
   dataRegistro: z.string().nullable().optional(),
-  fotoAntes: z.string().nullable().optional(),
-  fotoDepois: z.string().nullable().optional(),
+  fotos: z.array(z.object({
+    url: z.string(),
+    data: z.string(),
+  })).default([]),
 });
 
 export type ServiceArea = z.infer<typeof serviceAreaSchema>;
@@ -132,8 +134,7 @@ export const serviceAreas = pgTable("service_areas", {
   servico: text("servico"),
   registradoPor: text("registrado_por"),
   dataRegistro: timestamp("data_registro"),
-  fotoAntes: text("foto_antes"),
-  fotoDepois: text("foto_depois"),
+  fotos: jsonb("fotos").notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

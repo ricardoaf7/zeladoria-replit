@@ -149,6 +149,7 @@ export class DbStorage implements IStorage {
     if (data.history !== undefined) updateData.history = data.history;
     if (data.registradoPor !== undefined) updateData.registradoPor = data.registradoPor;
     if (data.manualSchedule !== undefined) updateData.manualSchedule = data.manualSchedule;
+    if (data.fotos !== undefined) updateData.fotos = data.fotos;
     if (data.dataRegistro !== undefined) {
       // Converter string ISO para Date object para o campo timestamp no banco
       updateData.dataRegistro = typeof data.dataRegistro === 'string' 
@@ -438,6 +439,7 @@ export class DbStorage implements IStorage {
       servico: dbArea.servico,
       registradoPor: dbArea.registradoPor || null,
       dataRegistro: dbArea.dataRegistro ? dbArea.dataRegistro.toISOString() : null,
+      fotos: (dbArea.fotos as any) || [],
     };
   }
 
