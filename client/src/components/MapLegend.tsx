@@ -12,10 +12,10 @@ export type TimeRangeFilter =
   | 'executing'  // Executando
   | '1-5'        // 1-5 dias
   | '6-15'       // 6-15 dias
-  | '16-25'      // 16-25 dias
-  | '26-35'      // 26-35 dias
-  | '36-45'      // 36-45 dias
-  | '46+'        // mais de 45 dias
+  | '16-30'      // 16-30 dias
+  | '31-45'      // 31-45 dias
+  | '46-60'      // 46-60 dias
+  | '61+'        // mais de 60 dias
   | 'no-history' // Sem registro
   | 'custom'     // Personalizado
   | null;        // Todos
@@ -31,10 +31,10 @@ const timeRanges = [
   { value: 'executing' as const, label: 'Executando', sublabel: 'Roçando agora', color: '#10b981', isPulsing: true },
   { value: '1-5' as const, label: '1-5 dias', sublabel: 'Roçado recentemente', color: '#0086ff' },
   { value: '6-15' as const, label: '6-15 dias', sublabel: 'Roçado há 6-15 dias', color: '#139b89' },
-  { value: '16-25' as const, label: '16-25 dias', sublabel: 'Roçado há 16-25 dias', color: '#fe8963' },
-  { value: '26-35' as const, label: '26-35 dias', sublabel: 'Roçado há 26-35 dias', color: '#b79689' },
-  { value: '36-45' as const, label: '36-45 dias', sublabel: 'Roçado há 36-45 dias', color: '#a08ee9' },
-  { value: '46+' as const, label: 'Mais de 45 dias', sublabel: 'Requer atenção', color: '#ea3c27' },
+  { value: '16-30' as const, label: '16-30 dias', sublabel: 'Roçado há 16-30 dias', color: '#fe8963' },
+  { value: '31-45' as const, label: '31-45 dias', sublabel: 'Roçado há 31-45 dias', color: '#b79689' },
+  { value: '46-60' as const, label: '46-60 dias', sublabel: 'Roçado há 46-60 dias', color: '#a08ee9' },
+  { value: '61+' as const, label: 'Mais de 60 dias', sublabel: 'Requer atenção', color: '#ea3c27' },
   { value: 'no-history' as const, label: 'Sem Registro', sublabel: 'Nunca roçada', color: '#c0c0c0' },
 ];
 

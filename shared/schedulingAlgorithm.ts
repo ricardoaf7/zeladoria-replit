@@ -1,12 +1,12 @@
 /**
  * Algoritmo de cálculo automático de previsão de roçagem
- * Ciclo fixo de 45 dias entre roçagens
- * Próxima roçagem = Última roçagem + 45 dias
+ * Ciclo fixo de 60 dias entre roçagens
+ * Próxima roçagem = Última roçagem + 60 dias
  */
 
 import type { ServiceArea, AppConfig } from './schema';
 
-const MOWING_CYCLE_DAYS = 45;
+const MOWING_CYCLE_DAYS = 60;
 
 export interface ScheduleCalculationResult {
   areaId: number;
@@ -16,7 +16,7 @@ export interface ScheduleCalculationResult {
 
 /**
  * Calcula a próxima previsão de roçagem para uma área
- * Ciclo fixo: próxima roçagem = última roçagem + 45 dias
+ * Ciclo fixo: próxima roçagem = última roçagem + 60 dias
  * Se nunca foi roçada, retorna null (área aparece sem previsão)
  * @param area Área para calcular
  * @returns Resultado do cálculo ou null
@@ -33,7 +33,7 @@ export function calculateNextMowing(area: ServiceArea): ScheduleCalculationResul
     return null;
   }
   
-  // Calcular próxima roçagem = última + 45 dias
+  // Calcular próxima roçagem = última + 60 dias
   const lastMowing = new Date(area.ultimaRocagem);
   lastMowing.setHours(0, 0, 0, 0);
   

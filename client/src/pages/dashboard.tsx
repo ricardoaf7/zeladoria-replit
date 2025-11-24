@@ -169,14 +169,14 @@ export default function Dashboard() {
             return days >= 1 && days <= 5;
           case '6-15':
             return days >= 6 && days <= 15;
-          case '16-25':
-            return days >= 16 && days <= 25;
-          case '26-35':
-            return days >= 26 && days <= 35;
-          case '36-45':
-            return days >= 36 && days <= 45;
-          case '46+':
-            return days > 45;
+          case '16-30':
+            return days >= 16 && days <= 30;
+          case '31-45':
+            return days >= 31 && days <= 45;
+          case '46-60':
+            return days >= 46 && days <= 60;
+          case '61+':
+            return days > 60;
           case 'custom':
             // Filtro por range de datas - baseado em ÚLTIMA roçagem
             if (!deferredCustomFilterDateRange.from || !deferredCustomFilterDateRange.to || !area.ultimaRocagem) return false;

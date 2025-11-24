@@ -395,20 +395,20 @@ function getAreaColor(area: ServiceArea, today: Date, isSelected = false, active
   else if (daysSince >= 6 && daysSince <= 15) {
     return "#139b89";
   } 
-  // Roçado há 16-25 dias - Laranja
-  else if (daysSince >= 16 && daysSince <= 25) {
+  // Roçado há 16-30 dias - Laranja
+  else if (daysSince >= 16 && daysSince <= 30) {
     return "#fe8963";
   } 
-  // Roçado há 26-35 dias - Bege/Marrom claro
-  else if (daysSince >= 26 && daysSince <= 35) {
+  // Roçado há 31-45 dias - Bege/Marrom claro
+  else if (daysSince >= 31 && daysSince <= 45) {
     return "#b79689";
   } 
-  // Roçado há 36-45 dias - Roxo claro
-  else if (daysSince >= 36 && daysSince <= 45) {
+  // Roçado há 46-60 dias - Roxo claro
+  else if (daysSince >= 46 && daysSince <= 60) {
     return "#a08ee9";
   }
-  // Roçado há mais de 45 dias - Vermelho (atenção)
-  else if (daysSince > 45) {
+  // Roçado há mais de 60 dias - Vermelho (atenção)
+  else if (daysSince > 60) {
     return "#ea3c27";
   }
   // Roçado hoje (dia 0)

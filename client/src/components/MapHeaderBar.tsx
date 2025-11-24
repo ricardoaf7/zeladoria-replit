@@ -26,10 +26,10 @@ const categoryFilters = [
   { value: 'executing' as const, label: 'Executando', color: '#10b981', shortLabel: 'Exec', isPulsing: true },
   { value: '1-5' as const, label: '1-5 dias', color: '#0086ff', shortLabel: '1-5d' },
   { value: '6-15' as const, label: '6-15 dias', color: '#139b89', shortLabel: '6-15d' },
-  { value: '16-25' as const, label: '16-25 dias', color: '#fe8963', shortLabel: '16-25d' },
-  { value: '26-35' as const, label: '26-35 dias', color: '#b79689', shortLabel: '26-35d' },
-  { value: '36-45' as const, label: '36-45 dias', color: '#a08ee9', shortLabel: '36-45d' },
-  { value: '46+' as const, label: '+45 dias', color: '#ea3c27', shortLabel: '+45d' },
+  { value: '16-30' as const, label: '16-30 dias', color: '#fe8963', shortLabel: '16-30d' },
+  { value: '31-45' as const, label: '31-45 dias', color: '#b79689', shortLabel: '31-45d' },
+  { value: '46-60' as const, label: '46-60 dias', color: '#a08ee9', shortLabel: '46-60d' },
+  { value: '61+' as const, label: '+60 dias', color: '#ea3c27', shortLabel: '+60d' },
   { value: 'no-history' as const, label: 'Sem Registro', color: '#c0c0c0', shortLabel: 'S/Reg' },
 ];
 

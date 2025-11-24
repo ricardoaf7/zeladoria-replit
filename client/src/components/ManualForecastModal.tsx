@@ -27,14 +27,14 @@ interface ManualForecastModalProps {
 
 export function ManualForecastModal({ area, open, onOpenChange }: ManualForecastModalProps) {
   const { toast } = useToast();
-  // Default: 45 dias no futuro
-  const [date, setDate] = useState<Date>(addDays(new Date(), 45));
+  // Default: 60 dias no futuro
+  const [date, setDate] = useState<Date>(addDays(new Date(), 60));
   const [inputValue, setInputValue] = useState<string>("");
 
   // Resetar data quando modal fechar
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      setDate(addDays(new Date(), 45)); // Reset para +45 dias ao fechar
+      setDate(addDays(new Date(), 60)); // Reset para +60 dias ao fechar
       setInputValue(""); // Limpar input
     }
     onOpenChange(newOpen);
@@ -182,7 +182,7 @@ export function ManualForecastModal({ area, open, onOpenChange }: ManualForecast
             </div>
             
             <p className="text-xs text-muted-foreground">
-              Esta previsão substituirá o cálculo automático de 45 dias.
+              Esta previsão substituirá o cálculo automático de 60 dias.
             </p>
           </div>
         </div>
