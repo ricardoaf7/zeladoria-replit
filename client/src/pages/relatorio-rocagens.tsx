@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Calendar, Filter } from "lucide-react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import html2pdf from "html2pdf.js";
 import type { ServiceArea } from "@shared/schema";
 import { formatDateBR } from "@/lib/utils";
 
@@ -77,7 +76,7 @@ export default function RelatorioRocagensPage() {
     return acc;
   }, {} as Record<string, ServiceArea[]>);
 
-  // Exportar para PDF
+  // Exportar para PDF com texto pesquisável
   const handleExportPDF = async () => {
     if (rocagensFiltered.length === 0) {
       alert("Nenhuma roçagem para exportar no período selecionado");
@@ -86,47 +85,13 @@ export default function RelatorioRocagensPage() {
 
     setIsExporting(true);
     try {
-      // Criar elemento temporário para capturar HTML
       const element = document.getElementById("relatorio-content");
       if (!element) {
         alert("Erro ao encontrar conteúdo do relatório");
         return;
       }
 
-      // Capturar como canvas (vetorial via jsPDF)
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-      });
-
-      // Criar PDF
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const imgWidth = 210; // A4 width
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Adicionar imagem ao PDF (alta qualidade)
-      const imgData = canvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= 297; // A4 height
-
-      // Adicionar páginas se necessário
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
-      }
-
-      // Download com período no nome
+      // Gerar nome do arquivo
       let fileName = "Relatorio_Rocagens";
       if (appliedFilters.dateFrom) {
         const fromDate = new Date(appliedFilters.dateFrom + "T00:00:00");
@@ -139,8 +104,17 @@ export default function RelatorioRocagensPage() {
       if (appliedFilters.lote) {
         fileName += `_Lote${appliedFilters.lote}`;
       }
-      fileName += ".pdf";
-      pdf.save(fileName);
+
+      // Usar html2pdf para criar PDF com texto pesquisável
+      const options: any = {
+        margin: 10,
+        filename: `${fileName}.pdf`,
+        image: { type: "png" as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: "p", unit: "mm", format: "a4" },
+      };
+
+      await html2pdf().set(options).from(element).save();
     } catch (error) {
       console.error("Erro ao exportar PDF:", error);
       alert("Erro ao exportar PDF");
