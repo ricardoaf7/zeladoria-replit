@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Download, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Calendar, Filter } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { ServiceArea } from "@shared/schema";
@@ -13,7 +14,13 @@ import { formatDateBR } from "@/lib/utils";
 export default function RelatorioRocagensPage() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [selectedLote, setSelectedLote] = useState<string>("");
   const [isExporting, setIsExporting] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<{ dateFrom: string; dateTo: string; lote: string }>({
+    dateFrom: "",
+    dateTo: "",
+    lote: "",
+  });
 
   const { data: areas = [] } = useQuery<ServiceArea[]>({
     queryKey: ["/api/areas/light"],
@@ -24,24 +31,37 @@ export default function RelatorioRocagensPage() {
     .filter(a => a.servico === "rocagem" || !a.servico) // Apenas roçagem
     .filter(a => a.ultimaRocagem) // Apenas áreas que já foram roçadas
     .filter(a => {
-      if (!dateFrom && !dateTo) return true;
+      if (!appliedFilters.dateFrom && !appliedFilters.dateTo) return true;
       const dataRocagem = new Date(a.ultimaRocagem!);
-      if (dateFrom) {
-        const from = new Date(dateFrom);
+      if (appliedFilters.dateFrom) {
+        const from = new Date(appliedFilters.dateFrom);
         if (dataRocagem < from) return false;
       }
-      if (dateTo) {
-        const to = new Date(dateTo);
+      if (appliedFilters.dateTo) {
+        const to = new Date(appliedFilters.dateTo);
         to.setHours(23, 59, 59, 999);
         if (dataRocagem > to) return false;
       }
       return true;
+    })
+    .filter(a => {
+      if (!appliedFilters.lote) return true;
+      return a.lote === parseInt(appliedFilters.lote);
     })
     .sort((a, b) => {
       const dateA = new Date(a.ultimaRocagem || 0);
       const dateB = new Date(b.ultimaRocagem || 0);
       return dateB.getTime() - dateA.getTime();
     });
+
+  // Manipulador para confirmar filtros
+  const handleConfirmFilters = () => {
+    setAppliedFilters({
+      dateFrom,
+      dateTo,
+      lote: selectedLote,
+    });
+  };
 
   // Agrupar por data
   const rocagensPorData = rocagensFiltered.reduce((acc, area) => {
@@ -123,7 +143,7 @@ export default function RelatorioRocagensPage() {
         {/* Filtros */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Filtrar por Período</CardTitle>
+            <CardTitle>Filtrar por Período e Lote</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4">
@@ -147,7 +167,29 @@ export default function RelatorioRocagensPage() {
                   data-testid="input-date-to"
                 />
               </div>
-              <div className="flex items-end">
+              <div className="flex-1">
+                <label className="text-sm font-medium text-muted-foreground">Lote</label>
+                <Select value={selectedLote} onValueChange={setSelectedLote}>
+                  <SelectTrigger className="mt-2" data-testid="select-lote">
+                    <SelectValue placeholder="Todos os lotes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos os lotes</SelectItem>
+                    <SelectItem value="1">Lote 1</SelectItem>
+                    <SelectItem value="2">Lote 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end gap-2">
+                <Button
+                  onClick={handleConfirmFilters}
+                  variant="outline"
+                  className="gap-2"
+                  data-testid="button-confirm-filters"
+                >
+                  <Filter className="h-4 w-4" />
+                  Confirmar
+                </Button>
                 <Button
                   onClick={handleExportPDF}
                   disabled={rocagensFiltered.length === 0 || isExporting}
@@ -198,9 +240,14 @@ export default function RelatorioRocagensPage() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-2">Relatório de Roçagens - Capina e Roçagem</h2>
             <p className="text-sm text-gray-600">
-              Período: {dateFrom ? new Date(dateFrom).toLocaleDateString("pt-BR") : "Desde o início"} até{" "}
-              {dateTo ? new Date(dateTo).toLocaleDateString("pt-BR") : "Até hoje"}
+              Período: {appliedFilters.dateFrom ? new Date(appliedFilters.dateFrom).toLocaleDateString("pt-BR") : "Desde o início"} até{" "}
+              {appliedFilters.dateTo ? new Date(appliedFilters.dateTo).toLocaleDateString("pt-BR") : "Até hoje"}
             </p>
+            {appliedFilters.lote && (
+              <p className="text-sm text-gray-600">
+                Lote: {appliedFilters.lote}
+              </p>
+            )}
             <p className="text-sm text-gray-600 mt-1">
               Data do relatório: {new Date().toLocaleDateString("pt-BR")} às {new Date().toLocaleTimeString("pt-BR")}
             </p>
