@@ -45,7 +45,7 @@ export default function RelatorioRocagensPage() {
       return true;
     })
     .filter(a => {
-      if (!appliedFilters.lote) return true;
+      if (!appliedFilters.lote || appliedFilters.lote === "todos") return true;
       return a.lote === parseInt(appliedFilters.lote);
     })
     .sort((a, b) => {
@@ -174,7 +174,7 @@ export default function RelatorioRocagensPage() {
                     <SelectValue placeholder="Todos os lotes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os lotes</SelectItem>
+                    <SelectItem value="todos">Todos os lotes</SelectItem>
                     <SelectItem value="1">Lote 1</SelectItem>
                     <SelectItem value="2">Lote 2</SelectItem>
                   </SelectContent>
