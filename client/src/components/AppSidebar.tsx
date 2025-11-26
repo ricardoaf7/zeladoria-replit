@@ -12,8 +12,10 @@ import {
   Recycle,
   Sparkles,
   Wind,
-  Package
+  Package,
+  BarChart3
 } from "lucide-react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import operacoesLogoPositivo from "@assets/Operacoes_Logo_Positivo_1762027620245.png";
 import operacoesLogoNegativo from "@assets/Operacoes_Logo_Negativo_1762032098603.png";
@@ -300,6 +302,19 @@ export function AppSidebar({
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+
+          <Separator className="my-4" />
+
+          {/* Botão de Relatórios */}
+          <Link href="/relatorios">
+            <button
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 bg-violet-600/20 dark:bg-violet-400/20 text-violet-700 dark:text-violet-300 border border-violet-600/40 dark:border-violet-400/40 hover:bg-violet-600/30 dark:hover:bg-violet-400/30 font-medium"
+              data-testid="button-relatorios"
+            >
+              <BarChart3 className="h-4 w-4 flex-shrink-0" />
+              <span>Relatórios</span>
+            </button>
+          </Link>
         </div>
     </>
   );
