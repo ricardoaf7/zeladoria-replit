@@ -34,12 +34,11 @@ export default function RelatorioRocagensPage() {
       if (!appliedFilters.dateFrom && !appliedFilters.dateTo) return true;
       const dataRocagem = new Date(a.ultimaRocagem!);
       if (appliedFilters.dateFrom) {
-        const from = new Date(appliedFilters.dateFrom);
+        const from = new Date(appliedFilters.dateFrom + "T00:00:00");
         if (dataRocagem < from) return false;
       }
       if (appliedFilters.dateTo) {
-        const to = new Date(appliedFilters.dateTo);
-        to.setHours(23, 59, 59, 999);
+        const to = new Date(appliedFilters.dateTo + "T23:59:59");
         if (dataRocagem > to) return false;
       }
       return true;
@@ -120,8 +119,20 @@ export default function RelatorioRocagensPage() {
         heightLeft -= 297;
       }
 
-      // Download
-      const fileName = `Relatorio_Rocagens_${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
+      // Download com período no nome
+      let fileName = "Relatorio_Rocagens";
+      if (appliedFilters.dateFrom) {
+        const fromDate = new Date(appliedFilters.dateFrom + "T00:00:00");
+        fileName += `_${fromDate.toLocaleDateString("pt-BR").replace(/\//g, "-")}`;
+      }
+      if (appliedFilters.dateTo) {
+        const toDate = new Date(appliedFilters.dateTo + "T00:00:00");
+        fileName += `_a_${toDate.toLocaleDateString("pt-BR").replace(/\//g, "-")}`;
+      }
+      if (appliedFilters.lote) {
+        fileName += `_Lote${appliedFilters.lote}`;
+      }
+      fileName += ".pdf";
       pdf.save(fileName);
     } catch (error) {
       console.error("Erro ao exportar PDF:", error);
