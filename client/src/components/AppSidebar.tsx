@@ -305,16 +305,27 @@ export function AppSidebar({
 
           <Separator className="my-4" />
 
-          {/* Botão de Relatórios */}
-          <Link href="/relatorios">
-            <button
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 bg-violet-600/20 dark:bg-violet-400/20 text-violet-700 dark:text-violet-300 border border-violet-600/40 dark:border-violet-400/40 hover:bg-violet-600/30 dark:hover:bg-violet-400/30 font-medium"
-              data-testid="button-relatorios"
-            >
-              <BarChart3 className="h-4 w-4 flex-shrink-0" />
-              <span>Relatórios</span>
-            </button>
-          </Link>
+          {/* Botões de Relatórios */}
+          <div className="space-y-2">
+            <Link href="/relatorios">
+              <button
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 bg-violet-600/20 dark:bg-violet-400/20 text-violet-700 dark:text-violet-300 border border-violet-600/40 dark:border-violet-400/40 hover:bg-violet-600/30 dark:hover:bg-violet-400/30 font-medium"
+                data-testid="button-relatorios"
+              >
+                <BarChart3 className="h-4 w-4 flex-shrink-0" />
+                <span>Relatórios Gerais</span>
+              </button>
+            </Link>
+            <Link href="/relatorios/rocagens">
+              <button
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors hover-elevate active-elevate-2 bg-green-600/20 dark:bg-green-400/20 text-green-700 dark:text-green-300 border border-green-600/40 dark:border-green-400/40 hover:bg-green-600/30 dark:hover:bg-green-400/30 font-medium"
+                data-testid="button-relatorios-rocagens"
+              >
+                <BarChart3 className="h-4 w-4 flex-shrink-0" />
+                <span>Relatório Roçagens</span>
+              </button>
+            </Link>
+          </div>
         </div>
     </>
   );
