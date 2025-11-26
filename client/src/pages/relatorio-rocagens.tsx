@@ -32,14 +32,13 @@ export default function RelatorioRocagensPage() {
     .filter(a => a.ultimaRocagem) // Apenas áreas que já foram roçadas
     .filter(a => {
       if (!appliedFilters.dateFrom && !appliedFilters.dateTo) return true;
-      const dataRocagem = new Date(a.ultimaRocagem!);
+      // Extrair apenas a data (YYYY-MM-DD) para comparação sem timezone
+      const dataRocagemStr = a.ultimaRocagem!.split("T")[0];
       if (appliedFilters.dateFrom) {
-        const from = new Date(appliedFilters.dateFrom + "T00:00:00");
-        if (dataRocagem < from) return false;
+        if (dataRocagemStr < appliedFilters.dateFrom) return false;
       }
       if (appliedFilters.dateTo) {
-        const to = new Date(appliedFilters.dateTo + "T23:59:59");
-        if (dataRocagem > to) return false;
+        if (dataRocagemStr > appliedFilters.dateTo) return false;
       }
       return true;
     })
