@@ -45,6 +45,8 @@ export default function Dashboard() {
   const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRangeFilter>(null);
   const [customFilterDateRange, setCustomFilterDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [savedMapZoom, setSavedMapZoom] = useState<number | null>(null);
+  const [savedMapCenter, setSavedMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const ignoreSearchClearRef = useRef(false); // Flag para ignorar limpeza após seleção
 
@@ -65,6 +67,11 @@ export default function Dashboard() {
     setSelectedService(service);
     // No mobile, não abrir automaticamente o BottomSheet
     // Deixar o usuário controlar via botão Menu
+  };
+
+  const handleMapZoomSaved = (zoom: number, center: { lat: number; lng: number }) => {
+    setSavedMapZoom(zoom);
+    setSavedMapCenter(center);
   };
 
   const handleBackupDownload = async () => {
@@ -445,6 +452,9 @@ export default function Dashboard() {
             area={selectedArea}
             open={showQuickRegisterModal}
             onOpenChange={setShowQuickRegisterModal}
+            mapRef={mapRef}
+            savedMapZoom={savedMapZoom}
+            savedMapCenter={savedMapCenter}
           />
 
           {/* Modal de registro - Jardins */}
@@ -553,6 +563,7 @@ export default function Dashboard() {
               activeFilter={timeRangeFilter}
               mapRef={mapRef}
               selectedAreaId={selectedArea?.id || null}
+              onMapZoomSaved={handleMapZoomSaved}
             />
 
             {/* Card flutuante no mapa */}
@@ -577,6 +588,9 @@ export default function Dashboard() {
         area={selectedArea}
         open={showQuickRegisterModal}
         onOpenChange={setShowQuickRegisterModal}
+        mapRef={mapRef}
+        savedMapZoom={savedMapZoom}
+        savedMapCenter={savedMapCenter}
       />
 
       {/* Modal de registro - Jardins */}
