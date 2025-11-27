@@ -9,6 +9,8 @@ export function useRocagemState() {
   const [showNewAreaModal, setShowNewAreaModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newAreaCoords, setNewAreaCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [savedMapZoom, setSavedMapZoom] = useState<number | null>(null);
+  const [savedMapCenter, setSavedMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   
   // Função de reset: chamada quando o módulo desmonta
   const reset = useCallback(() => {
@@ -19,6 +21,8 @@ export function useRocagemState() {
     setShowNewAreaModal(false);
     setShowEditModal(false);
     setNewAreaCoords(null);
+    setSavedMapZoom(null);
+    setSavedMapCenter(null);
   }, []);
 
   return {
@@ -37,6 +41,10 @@ export function useRocagemState() {
     setShowEditModal,
     newAreaCoords,
     setNewAreaCoords,
+    savedMapZoom,
+    setSavedMapZoom,
+    savedMapCenter,
+    setSavedMapCenter,
     // Funções de reset
     reset,
   };

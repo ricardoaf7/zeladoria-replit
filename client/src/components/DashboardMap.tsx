@@ -25,6 +25,9 @@ interface DashboardMapProps {
   activeFilter?: TimeRangeFilter;
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
   selectedAreaId?: number | null;
+  savedMapZoom?: number | null;
+  savedMapCenter?: { lat: number; lng: number } | null;
+  onMapZoomSaved?: (zoom: number, center: { lat: number; lng: number }) => void;
 }
 
 export function DashboardMap({
@@ -39,6 +42,9 @@ export function DashboardMap({
   activeFilter = null,
   onBoundsChange,
   selectedAreaId = null,
+  savedMapZoom = null,
+  savedMapCenter = null,
+  onMapZoomSaved,
 }: DashboardMapProps) {
   const { toast } = useToast();
   const internalMapRef = useRef<L.Map | null>(null);
