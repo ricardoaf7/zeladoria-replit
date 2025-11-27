@@ -24,9 +24,21 @@ interface QuickRegisterModalProps {
   area: ServiceArea | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mapRef?: React.MutableRefObject<any | null>;
+  savedMapZoom?: number | null;
+  savedMapCenter?: { lat: number; lng: number } | null;
+  onRestoreMapZoom?: () => void;
 }
 
-export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterModalProps) {
+export function QuickRegisterModal({ 
+  area, 
+  open, 
+  onOpenChange,
+  mapRef,
+  savedMapZoom,
+  savedMapCenter,
+  onRestoreMapZoom
+}: QuickRegisterModalProps) {
   const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [inputValue, setInputValue] = useState<string>("");
@@ -204,6 +216,14 @@ export function QuickRegisterModal({ area, open, onOpenChange }: QuickRegisterMo
         title: "Roçagem Registrada!",
         description: `Roçagem de ${area.endereco} registrada com sucesso.`,
       });
+      
+      // Restaurar zoom do mapa após sucesso
+      if (mapRef?.current && savedMapZoom !== null && savedMapCenter) {
+        setTimeout(() => {
+          mapRef.current.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
+        }, 100);
+      }
+      
       handleOpenChange(false);
     },
     onError: () => {

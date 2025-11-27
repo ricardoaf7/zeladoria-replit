@@ -16,7 +16,7 @@ import type { RocagemModuleProps } from './types';
  * O prop 'key' no Dashboard força React a desmontar completamente este módulo
  * ao trocar para outro serviço, garantindo zero poluição de estado.
  */
-export function RocagemModule({ rocagemAreas }: RocagemModuleProps) {
+export function RocagemModule({ rocagemAreas, mapRef }: RocagemModuleProps) {
   const state = useRocagemState();
 
   // Cleanup automático ao desmontar (quando usuário troca de módulo)
@@ -63,6 +63,9 @@ export function RocagemModule({ rocagemAreas }: RocagemModuleProps) {
             state.reset();
           }
         }}
+        mapRef={mapRef}
+        savedMapZoom={state.savedMapZoom}
+        savedMapCenter={state.savedMapCenter}
       />
 
       <ManualForecastModal

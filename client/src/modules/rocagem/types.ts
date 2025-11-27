@@ -1,7 +1,9 @@
 import type { ServiceArea } from '@shared/schema';
+import type L from 'leaflet';
 
 export interface RocagemModuleProps {
   rocagemAreas: ServiceArea[];
+  mapRef?: React.MutableRefObject<L.Map | null>;
 }
 
 export interface RocagemModuleState {
