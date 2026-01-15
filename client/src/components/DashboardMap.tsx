@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMutation } from "@tanstack/react-query";
@@ -67,6 +67,16 @@ export function DashboardMap({
     hybrid: null,
   });
   const [currentLayer, setCurrentLayer] = useState<MapLayerType>("standard");
+  
+  // Refs para manter valores atualizados no listener de clique
+  const relocatingAreaIdRef = useRef<number | null>(null);
+  const onPositionChangeRef = useRef<((areaId: number, lat: number, lng: number) => void) | undefined>(undefined);
+  
+  // Manter refs sincronizadas com props
+  useEffect(() => {
+    relocatingAreaIdRef.current = relocatingAreaId;
+    onPositionChangeRef.current = onPositionChange;
+  }, [relocatingAreaId, onPositionChange]);
 
   const updatePositionMutation = useMutation({
     mutationFn: async ({ areaId, lat, lng }: { areaId: number; lat: number; lng: number }) => {
@@ -150,6 +160,31 @@ export function DashboardMap({
       map.on('contextmenu', handleMapContextMenu);
     }
 
+    // Listener para clique esquerdo no mapa (relocação de área)
+    // Usa refs para sempre ter acesso ao valor mais recente
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      const areaId = relocatingAreaIdRef.current;
+      const callback = onPositionChangeRef.current;
+      
+      if (!areaId || !callback) return;
+      
+      console.log('[Relocation] Clique detectado:', e.latlng, 'areaId:', areaId);
+      
+      const { lat, lng } = e.latlng;
+      if (
+        typeof lat === 'number' && 
+        typeof lng === 'number' &&
+        !isNaN(lat) && 
+        !isNaN(lng) &&
+        isFinite(lat) && 
+        isFinite(lng)
+      ) {
+        callback(areaId, lat, lng);
+      }
+    };
+    
+    map.on('click', handleMapClick);
+
     // Listener para atualizar bounds quando o mapa se mover
     const handleBoundsChange = () => {
       if (onBoundsChange) {
@@ -173,6 +208,7 @@ export function DashboardMap({
       if (onMapClick) {
         map.off('contextmenu', handleMapContextMenu);
       }
+      map.off('click', handleMapClick);
       map.remove();
       mapRef.current = null;
     };
@@ -207,36 +243,6 @@ export function DashboardMap({
       selectedLayer.addTo(mapRef.current);
     }
   }, [currentLayer]);
-
-  // Listener para clique no mapa durante modo de relocação
-  // Permite que o usuário navegue livremente e clique para definir nova posição
-  useEffect(() => {
-    if (!mapRef.current) return;
-    
-    // Só adicionar listener se estiver em modo de relocação
-    if (!relocatingAreaId || !onPositionChange) return;
-
-    const handleRelocationClick = (e: L.LeafletMouseEvent) => {
-      // Validar coordenadas
-      const { lat, lng } = e.latlng;
-      if (
-        typeof lat === 'number' && 
-        typeof lng === 'number' &&
-        !isNaN(lat) && 
-        !isNaN(lng) &&
-        isFinite(lat) && 
-        isFinite(lng)
-      ) {
-        onPositionChange(relocatingAreaId, lat, lng);
-      }
-    };
-
-    mapRef.current.on('click', handleRelocationClick);
-
-    return () => {
-      mapRef.current?.off('click', handleRelocationClick);
-    };
-  }, [relocatingAreaId, onPositionChange]);
 
   useEffect(() => {
     if (!mapRef.current) return;
