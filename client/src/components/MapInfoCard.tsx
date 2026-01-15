@@ -394,11 +394,11 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
         />
       </CardContent>
 
-      {/* Dialogs renderizados via Portal para evitar problemas com overflow do Card */}
+      {/* Dialogs renderizados via Portal com z-index alto para ficar acima do card (z-1000) */}
       {createPortal(
         <>
           <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-            <AlertDialogContent data-testid="dialog-delete-confirm">
+            <AlertDialogContent data-testid="dialog-delete-confirm" className="z-[1100]">
               <AlertDialogHeader>
                 <AlertDialogTitle>Deletar Área?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -422,7 +422,7 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
           </AlertDialog>
 
           <AlertDialog open={showUndoMowingConfirm} onOpenChange={setShowUndoMowingConfirm}>
-            <AlertDialogContent data-testid="dialog-undo-mowing-confirm">
+            <AlertDialogContent data-testid="dialog-undo-mowing-confirm" className="z-[1100]">
               <AlertDialogHeader>
                 <AlertDialogTitle>Desfazer Roçagem?</AlertDialogTitle>
                 <AlertDialogDescription>

@@ -64,6 +64,7 @@ export default function Dashboard() {
   const [showNewAreaConfirm, setShowNewAreaConfirm] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const ignoreSearchClearRef = useRef(false); // Flag para ignorar limpeza após seleção
+  const lastZoomedAreaIdRef = useRef<number | null>(null); // Para evitar zoom repetido
 
   // Limpar selectedArea quando busca é limpa MANUALMENTE (não após seleção)
   useEffect(() => {
@@ -308,26 +309,30 @@ export default function Dashboard() {
     (filters.tipo && filters.tipo !== "all") ||
     timeRangeFilter !== null;
 
+  // Zoom automático só na primeira seleção de cada área (não em re-renders)
   useEffect(() => {
     if (selectedArea && mapRef.current) {
-      const lat = selectedArea.lat;
-      const lng = selectedArea.lng;
-      
-      // Validar coordenadas antes de fazer zoom
-      if (
-        lat && 
-        lng && 
-        typeof lat === 'number' && 
-        typeof lng === 'number' &&
-        !isNaN(lat) && 
-        !isNaN(lng) &&
-        isFinite(lat) && 
-        isFinite(lng)
-      ) {
-        // Sempre aproximar ao clicar em uma área (zoom 17 para boa visualização)
-        mapRef.current.setView([lat, lng], 17, { animate: true });
-      } else {
-        console.warn('Coordenadas inválidas para área:', selectedArea.id, { lat, lng });
+      // Só fazer zoom se é uma área diferente da última
+      if (lastZoomedAreaIdRef.current !== selectedArea.id) {
+        const lat = selectedArea.lat;
+        const lng = selectedArea.lng;
+        
+        // Validar coordenadas antes de fazer zoom
+        if (
+          lat && 
+          lng && 
+          typeof lat === 'number' && 
+          typeof lng === 'number' &&
+          !isNaN(lat) && 
+          !isNaN(lng) &&
+          isFinite(lat) && 
+          isFinite(lng)
+        ) {
+          mapRef.current.setView([lat, lng], 17, { animate: true });
+          lastZoomedAreaIdRef.current = selectedArea.id;
+        } else {
+          console.warn('Coordenadas inválidas para área:', selectedArea.id, { lat, lng });
+        }
       }
     }
   }, [selectedArea]);
@@ -344,8 +349,8 @@ export default function Dashboard() {
   };
 
   const handleCloseMapCard = () => {
+    // Apenas ocultar o card, não resetar selectedArea para preservar estado do mapa
     setShowMapCard(false);
-    setSelectedArea(null);
   };
 
   const handleOpenQuickRegister = () => {
