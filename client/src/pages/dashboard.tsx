@@ -60,6 +60,8 @@ export default function Dashboard() {
   const [relocatingAreaId, setRelocatingAreaId] = useState<number | null>(null);
   const [pendingRelocation, setPendingRelocation] = useState<{ areaId: number; lat: number; lng: number } | null>(null);
   const [showRelocationConfirm, setShowRelocationConfirm] = useState(false);
+  const [pendingNewAreaCoords, setPendingNewAreaCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [showNewAreaConfirm, setShowNewAreaConfirm] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const ignoreSearchClearRef = useRef(false); // Flag para ignorar limpeza após seleção
 
@@ -367,8 +369,23 @@ export default function Dashboard() {
   };
 
   const handleMapClick = (lat: number, lng: number) => {
-    setNewAreaCoords({ lat, lng });
-    setShowNewAreaModal(true);
+    // Clique direito no mapa: mostrar confirmação primeiro
+    setPendingNewAreaCoords({ lat, lng });
+    setShowNewAreaConfirm(true);
+  };
+
+  const handleConfirmNewArea = () => {
+    if (pendingNewAreaCoords) {
+      setNewAreaCoords(pendingNewAreaCoords);
+      setShowNewAreaModal(true);
+    }
+    setShowNewAreaConfirm(false);
+    setPendingNewAreaCoords(null);
+  };
+
+  const handleCancelNewArea = () => {
+    setShowNewAreaConfirm(false);
+    setPendingNewAreaCoords(null);
   };
 
   const handleAreaUpdate = (updatedArea: ServiceArea) => {
@@ -712,6 +729,30 @@ export default function Dashboard() {
               data-testid="button-confirm-relocation"
             >
               {updatePositionMutation.isPending ? "Salvando..." : "Confirmar"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de confirmação para adicionar nova área */}
+      <AlertDialog open={showNewAreaConfirm} onOpenChange={setShowNewAreaConfirm}>
+        <AlertDialogContent data-testid="dialog-new-area-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Adicionar Nova Área?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja cadastrar uma nova área nesta localização?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel onClick={handleCancelNewArea} data-testid="button-cancel-new-area">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmNewArea}
+              className="bg-green-600 hover:bg-green-700"
+              data-testid="button-confirm-new-area"
+            >
+              Sim, Adicionar
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
