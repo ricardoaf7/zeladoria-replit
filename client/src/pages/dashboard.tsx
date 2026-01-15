@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
+import { useState, useRef, useEffect, useMemo, useDeferredValue, useCallback } from "react";
 import { DashboardMap } from "@/components/DashboardMap";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -127,10 +127,11 @@ export default function Dashboard() {
   };
 
   // Handler quando o marcador é arrastado
-  const handlePositionChange = (areaId: number, lat: number, lng: number) => {
+  // IMPORTANTE: useCallback para evitar recriação do mapa ao re-render
+  const handlePositionChange = useCallback((areaId: number, lat: number, lng: number) => {
     setPendingRelocation({ areaId, lat, lng });
     setShowRelocationConfirm(true);
-  };
+  }, []);
 
   // Handler para confirmar relocação
   const handleConfirmRelocation = () => {
@@ -349,10 +350,11 @@ export default function Dashboard() {
     "--sidebar-width-icon": "4rem",
   } as React.CSSProperties;
 
-  const handleAreaClick = (area: ServiceArea) => {
+  // IMPORTANTE: useCallback para evitar recriação do mapa ao re-render
+  const handleAreaClick = useCallback((area: ServiceArea) => {
     setSelectedArea(area);
     setShowMapCard(true); // Mostrar card flutuante no mapa
-  };
+  }, []);
 
   const handleCloseMapCard = () => {
     // Apenas ocultar o card, não resetar selectedArea para preservar estado do mapa
@@ -385,11 +387,13 @@ export default function Dashboard() {
     setShowEditModal(true);
   };
 
-  const handleMapClick = (lat: number, lng: number) => {
+  // IMPORTANTE: useCallback para evitar recriação do mapa ao re-render
+  // handleMapClick é passado como dependência do useEffect de inicialização do mapa
+  const handleMapClick = useCallback((lat: number, lng: number) => {
     // Clique direito no mapa: mostrar confirmação primeiro
     setPendingNewAreaCoords({ lat, lng });
     setShowNewAreaConfirm(true);
-  };
+  }, []);
 
   const handleConfirmNewArea = () => {
     if (pendingNewAreaCoords) {
