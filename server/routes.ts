@@ -810,6 +810,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // - POST /api/admin/clear-simulation (apaga todos os registros de roçagem)
   // - POST /api/admin/import-production (não necessário - banco é compartilhado entre dev e produção)
 
+  // Desfazer último registro de roçagem de uma área
+  app.delete("/api/areas/:id/rocagem", async (req, res) => {
+    try {
+      const areaId = parseInt(req.params.id);
+      
+      // Buscar área atual
+      const area = await storage.getAreaById(areaId);
+      if (!area) {
+        res.status(404).json({ error: "Área não encontrada" });
+        return;
+      }
+      
+      // Limpar o registro de roçagem e campos relacionados
+      const updatedArea = await storage.updateArea(areaId, {
+        ultimaRocagem: null,
+        proximaPrevisao: null,
+        registradoPor: null,
+        dataRegistro: null,
+        status: "Pendente" as const,
+        manualSchedule: false,
+      });
+      
+      if (!updatedArea) {
+        res.status(500).json({ error: "Falha ao desfazer roçagem" });
+        return;
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Registro de roçagem removido com sucesso",
+        area: updatedArea 
+      });
+    } catch (error) {
+      console.error("Error undoing mowing:", error);
+      res.status(500).json({ error: "Falha ao desfazer roçagem" });
+    }
+  });
+
   app.post("/api/admin/recalculate-schedules", async (req, res) => {
     console.log("📅 Recalculando agendamentos de todas as áreas");
     

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon, Move } from "lucide-react";
+import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon, Move, Undo2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,7 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUndoMowingConfirm, setShowUndoMowingConfirm] = useState(false);
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
 
   const deleteAreaMutation = useMutation({
@@ -56,6 +57,29 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
         variant: "destructive",
         title: "Erro ao Deletar",
         description: "Não foi possível deletar a área.",
+      });
+    },
+  });
+
+  const undoMowingMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", `/api/areas/${area.id}/rocagem`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Roçagem Desfeita",
+        description: `O registro de roçagem foi removido de ${area.endereco}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "rocagem"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Desfazer",
+        description: "Não foi possível desfazer o registro de roçagem.",
       });
     },
   });
@@ -256,6 +280,19 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
                 Registrar Roçagem
               </Button>
 
+              {area.ultimaRocagem && (
+                <Button
+                  onClick={() => setShowUndoMowingConfirm(true)}
+                  variant="outline"
+                  className="w-full h-9 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  data-testid="button-undo-mowing"
+                  disabled={undoMowingMutation.isPending}
+                >
+                  <Undo2 className="h-4 w-4 mr-2" />
+                  Desfazer Roçagem
+                </Button>
+              )}
+
               <Button
                 onClick={() => setShowPhotoGallery(true)}
                 variant="outline"
@@ -368,6 +405,36 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
                 data-testid="button-confirm-delete"
               >
                 {deleteAreaMutation.isPending ? "Deletando..." : "Deletar"}
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showUndoMowingConfirm} onOpenChange={setShowUndoMowingConfirm}>
+          <AlertDialogContent data-testid="dialog-undo-mowing-confirm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Desfazer Roçagem?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja desfazer o registro de roçagem de {area.endereco}?
+                {area.ultimaRocagem && (
+                  <span className="block mt-2 font-medium">
+                    Data registrada: {formatDateBR(area.ultimaRocagem)}
+                    {area.registradoPor && ` (por ${area.registradoPor})`}
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-2">
+              <AlertDialogCancel data-testid="button-cancel-undo-mowing">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => undoMowingMutation.mutate()}
+                className="bg-orange-600 hover:bg-orange-700"
+                disabled={undoMowingMutation.isPending}
+                data-testid="button-confirm-undo-mowing"
+              >
+                {undoMowingMutation.isPending ? "Desfazendo..." : "Desfazer Roçagem"}
               </AlertDialogAction>
             </div>
           </AlertDialogContent>
