@@ -310,7 +310,13 @@ export default function Dashboard() {
     timeRangeFilter !== null;
 
   // Zoom automático só na primeira seleção de cada área (não em re-renders)
+  // DESABILITADO quando modal de registro está aberto para preservar zoom do usuário
   useEffect(() => {
+    // Não fazer zoom automático se algum modal de registro está aberto
+    if (showQuickRegisterModal || showJardinsRegisterModal) {
+      return;
+    }
+    
     if (selectedArea && mapRef.current) {
       // Só fazer zoom se é uma área diferente da última
       if (lastZoomedAreaIdRef.current !== selectedArea.id) {
@@ -335,7 +341,7 @@ export default function Dashboard() {
         }
       }
     }
-  }, [selectedArea]);
+  }, [selectedArea, showQuickRegisterModal, showJardinsRegisterModal]);
 
   // Largura responsiva: 85% em mobile, 21rem em desktop
   const style = {
