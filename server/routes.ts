@@ -815,6 +815,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const areaId = parseInt(req.params.id);
       
+      if (isNaN(areaId)) {
+        res.status(400).json({ error: "ID inválido" });
+        return;
+      }
+      
       // Buscar área atual
       const area = await storage.getAreaById(areaId);
       if (!area) {
