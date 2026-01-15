@@ -730,9 +730,9 @@ export default function Dashboard() {
         onOpenChange={setShowExportDialog}
       />
 
-      {/* Diálogo de confirmação de relocação */}
+      {/* Diálogo de confirmação de relocação - z-index alto para ficar na frente */}
       <AlertDialog open={showRelocationConfirm} onOpenChange={setShowRelocationConfirm}>
-        <AlertDialogContent data-testid="dialog-relocation-confirm">
+        <AlertDialogContent data-testid="dialog-relocation-confirm" className="z-[9999]">
           <AlertDialogHeader>
             <AlertDialogTitle>Alterar Localização?</AlertDialogTitle>
             <AlertDialogDescription>

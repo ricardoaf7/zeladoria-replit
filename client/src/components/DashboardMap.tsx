@@ -71,6 +71,8 @@ export function DashboardMap({
   // Refs para manter valores atualizados no listener de clique
   const relocatingAreaIdRef = useRef<number | null>(null);
   const onPositionChangeRef = useRef<((areaId: number, lat: number, lng: number) => void) | undefined>(undefined);
+  const isDraggingMapRef = useRef(false);
+  const lastMoveTimeRef = useRef(0);
   
   // Manter refs sincronizadas com props
   useEffect(() => {
@@ -160,13 +162,34 @@ export function DashboardMap({
       map.on('contextmenu', handleMapContextMenu);
     }
 
+    // Detectar quando o mapa está sendo arrastado para evitar cliques acidentais
+    map.on('movestart', () => {
+      isDraggingMapRef.current = true;
+    });
+    
+    map.on('moveend', () => {
+      lastMoveTimeRef.current = Date.now();
+      // Pequeno delay para permitir que o clique seja ignorado
+      setTimeout(() => {
+        isDraggingMapRef.current = false;
+      }, 100);
+    });
+
     // Listener para clique esquerdo no mapa (relocação de área)
     // Usa refs para sempre ter acesso ao valor mais recente
+    // Ignora cliques que acontecem logo após arrastar o mapa
     const handleMapClick = (e: L.LeafletMouseEvent) => {
       const areaId = relocatingAreaIdRef.current;
       const callback = onPositionChangeRef.current;
       
       if (!areaId || !callback) return;
+      
+      // Ignorar clique se o mapa foi arrastado nos últimos 300ms
+      const timeSinceMove = Date.now() - lastMoveTimeRef.current;
+      if (isDraggingMapRef.current || timeSinceMove < 300) {
+        console.log('[Relocation] Clique ignorado - mapa estava sendo movido');
+        return;
+      }
       
       console.log('[Relocation] Clique detectado:', e.latlng, 'areaId:', areaId);
       

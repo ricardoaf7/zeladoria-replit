@@ -1,0 +1,303 @@
+VM1617:8 [Coframe] Replit Enterprise watcher loaded
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+zeladoria:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+zeladoria:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+zeladoria:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+fd778506bbb24164.js:2 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+fd778506bbb24164.js:2 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+fd778506bbb24164.js:2 [LaunchDarkly] LaunchDarkly client initialized
+zeladoria:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+zeladoria:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+ed1e693c96a75807.js:2 Unrecognized feature: 'ambient-light-sensor'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'battery'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-not-rendered'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-out-of-viewport'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'layout-animations'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'legacy-image-formats'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'navigation-override'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'oversized-images'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'publickey-credentials'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'speaker-selection'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'unoptimized-images'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'unsized-media'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Unrecognized feature: 'pointer-lock'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowfullscreen'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowpaymentrequest'.
+z @ ed1e693c96a75807.js:2
+recordTabs.js:2 Uncaught ReferenceError: ƒ is not defined
+    at recordTabs.js:2:402430
+recordTabs.js:2 Uncaught ReferenceError: ƒ is not defined
+    at recordTabs.js:2:402430
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Ara4%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/src/components/DashboardMap.tsx:169 [Relocation] Modo não ativo: Object
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/src/main.tsx?v=hlL6tCx-byeNKfg4BdzoA:8 ✅ Service Worker registrado com sucesso! https://dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/src/components/DashboardMap.tsx?t=1768493953901:169 [Relocation] Modo não ativo: Object
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/src/components/DashboardMap.tsx?t=1768493962429:175 [Relocation] Modo não ativo: Object
+recordTabs.js:2 Uncaught ReferenceError: ƒ is not defined
+    at recordTabs.js:2:402430
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/src/components/DashboardMap.tsx?t=1768493962429:175 [Relocation] Modo não ativo: Object
+DashboardMap.tsx?t=1768493962429:175 [Relocation] Modo não ativo: {relocatingAreaId: null, hasCallback: true}
+stallwart.build.js:1 stallwart: failed ping 1
+stallwart.build.js:1 stallwart: failed ping 2
+stallwart.build.js:1 stallwart: failed ping 3
+stallwart.build.js:1 stallwart: failed ping 4
+DashboardMap.tsx?t=1768493962429:178 [Relocation] Ativando listener de clique para área: 578
+DashboardMap.tsx?t=1768493962429:189 [Relocation] Removendo listener de clique
+DashboardMap.tsx?t=1768493984279:189 [Relocation] Ativando listener de clique para área: 578
+DashboardMap.tsx?t=1768493984279:200 [Relocation] Removendo listener de clique
+DashboardMap.tsx?t=1768493992243:190 [Relocation] Ativando listener de clique para área: 578
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Aras%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+fd778506bbb24164.js:2 task queue exceeded allotted deadline by 114ms
+(anonymous) @ fd778506bbb24164.js:2
+value @ 1000ea0663868345.js:2
+(anonymous) @ 1000ea0663868345.js:2
+a @ fd778506bbb24164.js:2
+setTimeout
+(anonymous) @ fd778506bbb24164.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+e @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 786787936ed6975f.js:2
+(anonymous) @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+(anonymous) @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+(anonymous) @ 786787936ed6975f.js:2
+a @ fd778506bbb24164.js:2
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+DashboardMap.tsx:187 [Relocation] Modo não ativo: {relocatingAreaId: null, hasCallback: true}
+main.tsx?v=0MgeJnC-ClnpPel-MVSkT:8 ✅ Service Worker registrado com sucesso! https://dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/
+client:560 [vite] server connection lost. Polling for restart...
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'battery'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'layout-animations'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'legacy-image-formats'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'navigation-override'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'oversized-images'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'publickey-credentials'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'speaker-selection'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'unoptimized-images'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Unrecognized feature: 'unsized-media'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arbl%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+sw.js:42 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at sw.js:42:17
+(anonymous) @ sw.js:42
+Promise.then
+(anonymous) @ sw.js:41
+Promise.then
+(anonymous) @ sw.js:37
+main.tsx:10 ✅ Service Worker registrado com sucesso! https://dda8805e-ff81-4335-b37d-20023ab54eab-00-dm34owpc3nk8.kirk.replit.dev/
+DashboardMap.tsx:171 [Relocation] Clique detectado: LatLng {lat: -23.296097237532948, lng: -51.154135465621955} areaId: 578
+fd778506bbb24164.js:2 task queue exceeded allotted deadline by 102ms
+(anonymous) @ fd778506bbb24164.js:2
+value @ 1000ea0663868345.js:2
+(anonymous) @ 1000ea0663868345.js:2
+a @ fd778506bbb24164.js:2
+setTimeout
+(anonymous) @ fd778506bbb24164.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+e @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 1000ea0663868345.js:2
+value @ 786787936ed6975f.js:2
+(anonymous) @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+(anonymous) @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+value @ 786787936ed6975f.js:2
+(anonymous) @ 786787936ed6975f.js:2
+a @ fd778506bbb24164.js:2
