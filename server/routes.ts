@@ -706,13 +706,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Se está registrando roçagem, adicionar timestamp automático
       if (data.ultimaRocagem) {
+        // Calcular próxima previsão: última roçagem + 60 dias
+        const lastMowing = new Date(data.ultimaRocagem);
+        lastMowing.setHours(0, 0, 0, 0);
+        const nextMowingDate = new Date(lastMowing);
+        nextMowingDate.setDate(lastMowing.getDate() + 60);
+        const proximaPrevisao = nextMowingDate.toISOString().split('T')[0];
+        
         const dataComTimestamp = {
           ...data,
           dataRegistro: new Date().toISOString(),
           manualSchedule: false,
+          proximaPrevisao, // Previsão calculada diretamente
+          status: "Concluído" as const,
         };
         
-        // Aplicar atualizações incluindo auditoria
+        // Aplicar atualizações incluindo auditoria e previsão - APENAS nesta área
         const updatedArea = await storage.updateArea(areaId, dataComTimestamp);
         
         if (!updatedArea) {
@@ -720,17 +729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return;
         }
         
-        // Recalcular previsões de todo o lote
-        await storage.registerDailyMowing([areaId], data.ultimaRocagem, 'completed');
-        
-        // Buscar área novamente após recálculo
-        const reloadedArea = await storage.getAreaById(areaId);
-        if (!reloadedArea) {
-          res.status(404).json({ error: "Area not found after recalculation" });
-          return;
-        }
-        
-        res.json(reloadedArea);
+        res.json(updatedArea);
         return;
       }
       
