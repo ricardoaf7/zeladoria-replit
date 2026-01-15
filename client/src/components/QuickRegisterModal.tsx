@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,22 @@ export function QuickRegisterModal({
   const [fotoDepois, setFotoDepois] = useState<string | null>(null);
   const [uploadingAntes, setUploadingAntes] = useState(false);
   const [uploadingDepois, setUploadingDepois] = useState(false);
+  const hasRestoredZoomRef = useRef(false);
+
+  // Restaurar zoom quando o modal ABRE (compensa qualquer mudança de zoom durante abertura)
+  useEffect(() => {
+    if (open && mapRef?.current && savedMapZoom && savedMapCenter && !hasRestoredZoomRef.current) {
+      // Aguardar o modal abrir completamente e então restaurar zoom
+      const timer = setTimeout(() => {
+        mapRef.current?.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
+        hasRestoredZoomRef.current = true;
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    if (!open) {
+      hasRestoredZoomRef.current = false;
+    }
+  }, [open, mapRef, savedMapZoom, savedMapCenter]);
 
   // Resetar data para hoje quando modal fechar e restaurar zoom do mapa
   const handleOpenChange = (newOpen: boolean) => {
