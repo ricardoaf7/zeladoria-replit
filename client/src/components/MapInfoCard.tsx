@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon } from "lucide-react";
+import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon, Move } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,9 +27,11 @@ interface MapInfoCardProps {
   onRegisterJardins?: () => void;
   onSetManualForecast: () => void;
   onEdit?: () => void;
+  onChangeLocation?: () => void;
+  isRelocating?: boolean;
 }
 
-export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins, onSetManualForecast, onEdit }: MapInfoCardProps) {
+export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins, onSetManualForecast, onEdit, onChangeLocation, isRelocating = false }: MapInfoCardProps) {
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -307,6 +309,20 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
           </Button>
 
           <Separator />
+
+          {onChangeLocation && (
+            <Button
+              onClick={onChangeLocation}
+              variant={isRelocating ? "default" : "outline"}
+              className={`w-full h-8 ${isRelocating 
+                ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                : "text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700"}`}
+              data-testid="button-change-location"
+            >
+              <Move className="h-3.5 w-3.5 mr-1" />
+              {isRelocating ? "Arraste o Marcador no Mapa" : "Mudar Localização"}
+            </Button>
+          )}
 
           <div className="flex gap-2">
             {onEdit && (

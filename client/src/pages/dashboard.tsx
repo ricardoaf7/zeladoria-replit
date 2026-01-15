@@ -13,11 +13,21 @@ import { ExportDialog } from "@/components/ExportDialog";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { BottomSheet, type BottomSheetState } from "@/components/BottomSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { ServiceArea, AppConfig } from "@shared/schema";
 import type { FilterCriteria } from "@/components/FilterPanel";
 import type { TimeRangeFilter } from "@/components/MapLegend";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Menu, X, Download, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import L from "leaflet";
@@ -47,6 +57,9 @@ export default function Dashboard() {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [savedMapZoom, setSavedMapZoom] = useState<number | null>(null);
   const [savedMapCenter, setSavedMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [relocatingAreaId, setRelocatingAreaId] = useState<number | null>(null);
+  const [pendingRelocation, setPendingRelocation] = useState<{ areaId: number; lat: number; lng: number } | null>(null);
+  const [showRelocationConfirm, setShowRelocationConfirm] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const ignoreSearchClearRef = useRef(false); // Flag para ignorar limpeza após seleção
 
@@ -72,6 +85,64 @@ export default function Dashboard() {
   const handleMapZoomSaved = (zoom: number, center: { lat: number; lng: number }) => {
     setSavedMapZoom(zoom);
     setSavedMapCenter(center);
+  };
+
+  // Mutation para atualizar posição da área
+  const updatePositionMutation = useMutation({
+    mutationFn: async ({ areaId, lat, lng }: { areaId: number; lat: number; lng: number }) => {
+      return await apiRequest("PATCH", `/api/areas/${areaId}/position`, { lat, lng });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "rocagem"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "jardins"] });
+      toast({
+        title: "Localização Atualizada",
+        description: "A localização da área foi alterada com sucesso.",
+      });
+      setRelocatingAreaId(null);
+      setPendingRelocation(null);
+      setShowRelocationConfirm(false);
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível alterar a localização.",
+      });
+    },
+  });
+
+  // Handler para iniciar modo de relocação
+  const handleStartRelocation = () => {
+    if (selectedArea) {
+      setRelocatingAreaId(selectedArea.id);
+      toast({
+        title: "Modo de Relocação Ativo",
+        description: "Arraste o marcador azul para a nova localização.",
+      });
+    }
+  };
+
+  // Handler quando o marcador é arrastado
+  const handlePositionChange = (areaId: number, lat: number, lng: number) => {
+    setPendingRelocation({ areaId, lat, lng });
+    setShowRelocationConfirm(true);
+  };
+
+  // Handler para confirmar relocação
+  const handleConfirmRelocation = () => {
+    if (pendingRelocation) {
+      updatePositionMutation.mutate(pendingRelocation);
+    }
+  };
+
+  // Handler para cancelar relocação
+  const handleCancelRelocation = () => {
+    setShowRelocationConfirm(false);
+    setPendingRelocation(null);
+    setRelocatingAreaId(null);
+    // Invalidar para resetar posição do marcador
+    queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "rocagem"] });
   };
 
   const handleBackupDownload = async () => {
@@ -415,6 +486,8 @@ export default function Dashboard() {
             searchQuery={filters.search}
             activeFilter={timeRangeFilter}
             selectedAreaId={selectedArea?.id || null}
+            relocatingAreaId={relocatingAreaId}
+            onPositionChange={handlePositionChange}
           />
 
           {/* Card flutuante no mapa */}
@@ -427,6 +500,8 @@ export default function Dashboard() {
                 onRegisterJardins={handleOpenJardinsRegister}
                 onSetManualForecast={handleOpenManualForecast}
                 onEdit={handleOpenEdit}
+                onChangeLocation={handleStartRelocation}
+                isRelocating={relocatingAreaId === selectedArea.id}
               />
             </div>
           )}
@@ -564,6 +639,8 @@ export default function Dashboard() {
               mapRef={mapRef}
               selectedAreaId={selectedArea?.id || null}
               onMapZoomSaved={handleMapZoomSaved}
+              relocatingAreaId={relocatingAreaId}
+              onPositionChange={handlePositionChange}
             />
 
             {/* Card flutuante no mapa */}
@@ -576,6 +653,8 @@ export default function Dashboard() {
                   onRegisterJardins={handleOpenJardinsRegister}
                   onSetManualForecast={handleOpenManualForecast}
                   onEdit={handleOpenEdit}
+                  onChangeLocation={handleStartRelocation}
+                  isRelocating={relocatingAreaId === selectedArea.id}
                 />
               </div>
             )}
@@ -612,6 +691,31 @@ export default function Dashboard() {
         open={showExportDialog}
         onOpenChange={setShowExportDialog}
       />
+
+      {/* Diálogo de confirmação de relocação */}
+      <AlertDialog open={showRelocationConfirm} onOpenChange={setShowRelocationConfirm}>
+        <AlertDialogContent data-testid="dialog-relocation-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Alterar Localização?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar a localização desta área para as novas coordenadas?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel onClick={handleCancelRelocation} data-testid="button-cancel-relocation">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmRelocation}
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={updatePositionMutation.isPending}
+              data-testid="button-confirm-relocation"
+            >
+              {updatePositionMutation.isPending ? "Salvando..." : "Confirmar"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modal de cadastro de nova área */}
       {newAreaCoords && (

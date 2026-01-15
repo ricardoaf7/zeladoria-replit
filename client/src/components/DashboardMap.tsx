@@ -28,6 +28,8 @@ interface DashboardMapProps {
   savedMapZoom?: number | null;
   savedMapCenter?: { lat: number; lng: number } | null;
   onMapZoomSaved?: (zoom: number, center: { lat: number; lng: number }) => void;
+  relocatingAreaId?: number | null;
+  onPositionChange?: (areaId: number, lat: number, lng: number) => void;
 }
 
 export function DashboardMap({
@@ -45,6 +47,8 @@ export function DashboardMap({
   savedMapZoom = null,
   savedMapCenter = null,
   onMapZoomSaved,
+  relocatingAreaId = null,
+  onPositionChange,
 }: DashboardMapProps) {
   const { toast } = useToast();
   const internalMapRef = useRef<L.Map | null>(null);
@@ -233,27 +237,31 @@ export function DashboardMap({
       const color = getAreaColor(area, today, isSelected, activeFilter);
       const isPulsing = area.status === "Em Execução";
 
-      // Criar um ícone div circular arrastável
+      // Verificar se esta área está em modo de relocação
+      const isRelocating = relocatingAreaId === area.id;
+      
+      // Criar um ícone div circular (arrastável apenas se em modo relocação)
       const icon = L.divIcon({
         className: "area-marker",
         html: `<div style="
           background-color: ${color};
-          width: 16px;
-          height: 16px;
+          width: ${isRelocating ? '20px' : '16px'};
+          height: ${isRelocating ? '20px' : '16px'};
           border-radius: 50%;
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          border: ${isRelocating ? '3px solid #3b82f6' : '2px solid white'};
+          box-shadow: ${isRelocating ? '0 0 12px rgba(59, 130, 246, 0.8)' : '0 2px 4px rgba(0,0,0,0.3)'};
           opacity: 0.9;
-          cursor: move;
+          cursor: ${isRelocating ? 'move' : 'pointer'};
           ${isPulsing ? 'animation: marker-blink 2s ease-in-out infinite;' : ''}
+          ${isRelocating ? 'animation: pulse-relocate 1s ease-in-out infinite;' : ''}
         "></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        iconSize: [isRelocating ? 20 : 16, isRelocating ? 20 : 16],
+        iconAnchor: [isRelocating ? 10 : 8, isRelocating ? 10 : 8],
       });
 
       const marker = L.marker([area.lat, area.lng], { 
         icon,
-        draggable: true, // Habilita drag em PC e mobile
+        draggable: isRelocating, // Só arrasta se em modo relocação
       });
 
       // Tooltip permanente quando:
@@ -301,33 +309,31 @@ export function DashboardMap({
 
       marker.on("click", () => onAreaClick(area));
 
-      // Evento quando o usuário termina de arrastar (PC ou mobile)
-      marker.on("dragend", (e) => {
-        const newPos = (e.target as L.Marker).getLatLng();
-        
-        // Validar coordenadas antes de salvar
-        if (
-          newPos && 
-          typeof newPos.lat === 'number' && 
-          typeof newPos.lng === 'number' &&
-          !isNaN(newPos.lat) && 
-          !isNaN(newPos.lng) &&
-          isFinite(newPos.lat) && 
-          isFinite(newPos.lng)
-        ) {
-          updatePositionMutation.mutate({
-            areaId: area.id,
-            lat: newPos.lat,
-            lng: newPos.lng,
-          });
-        } else {
-          console.warn('Coordenadas inválidas recebidas no dragend:', newPos);
-        }
-      });
+      // Evento quando o usuário termina de arrastar (apenas se em modo relocação)
+      if (isRelocating && onPositionChange) {
+        marker.on("dragend", (e) => {
+          const newPos = (e.target as L.Marker).getLatLng();
+          
+          // Validar coordenadas antes de chamar callback
+          if (
+            newPos && 
+            typeof newPos.lat === 'number' && 
+            typeof newPos.lng === 'number' &&
+            !isNaN(newPos.lat) && 
+            !isNaN(newPos.lng) &&
+            isFinite(newPos.lat) && 
+            isFinite(newPos.lng)
+          ) {
+            onPositionChange(area.id, newPos.lat, newPos.lng);
+          } else {
+            console.warn('Coordenadas inválidas recebidas no dragend:', newPos);
+          }
+        });
+      }
 
       marker.addTo(layerGroup);
     });
-  }, [rocagemAreas, onAreaClick, filteredAreaIds, searchQuery]);
+  }, [rocagemAreas, onAreaClick, filteredAreaIds, searchQuery, relocatingAreaId, onPositionChange, selectedAreaId, activeFilter]);
 
   useEffect(() => {
     if (!mapRef.current) return;
