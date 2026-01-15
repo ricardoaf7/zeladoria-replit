@@ -217,12 +217,8 @@ export function QuickRegisterModal({
         description: `Roçagem de ${area.endereco} registrada com sucesso.`,
       });
       
-      // Restaurar zoom do mapa após sucesso
-      if (mapRef?.current && savedMapZoom !== null && savedMapCenter) {
-        setTimeout(() => {
-          mapRef.current.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
-        }, 100);
-      }
+      // Manter zoom atual no bairro - não restaurar zoom anterior
+      // O mapa permanece na mesma posição para facilitar registros consecutivos
       
       handleOpenChange(false);
     },
