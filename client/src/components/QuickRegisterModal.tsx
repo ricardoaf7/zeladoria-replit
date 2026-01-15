@@ -46,21 +46,40 @@ export function QuickRegisterModal({
   const [fotoDepois, setFotoDepois] = useState<string | null>(null);
   const [uploadingAntes, setUploadingAntes] = useState(false);
   const [uploadingDepois, setUploadingDepois] = useState(false);
-  const hasRestoredZoomRef = useRef(false);
-
-  // Restaurar zoom quando o modal ABRE (compensa qualquer mudança de zoom durante abertura)
+  // Manter zoom estável enquanto modal está aberto
+  // Detecta mudanças de zoom e restaura imediatamente
   useEffect(() => {
-    if (open && mapRef?.current && savedMapZoom && savedMapCenter && !hasRestoredZoomRef.current) {
-      // Aguardar o modal abrir completamente e então restaurar zoom
-      const timer = setTimeout(() => {
-        mapRef.current?.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
-        hasRestoredZoomRef.current = true;
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    if (!open) {
-      hasRestoredZoomRef.current = false;
-    }
+    if (!open || !mapRef?.current || !savedMapZoom || !savedMapCenter) return;
+
+    const map = mapRef.current;
+    
+    // Restaurar zoom inicial
+    map.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
+    
+    // Listener para detectar mudanças de zoom e restaurar
+    const handleZoomEnd = () => {
+      const currentZoom = map.getZoom();
+      if (currentZoom !== savedMapZoom) {
+        map.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
+      }
+    };
+    
+    const handleMoveEnd = () => {
+      const currentCenter = map.getCenter();
+      const currentZoom = map.getZoom();
+      // Se o zoom mudou significativamente, restaurar
+      if (Math.abs(currentZoom - savedMapZoom) > 0.5) {
+        map.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
+      }
+    };
+    
+    map.on('zoomend', handleZoomEnd);
+    map.on('moveend', handleMoveEnd);
+    
+    return () => {
+      map.off('zoomend', handleZoomEnd);
+      map.off('moveend', handleMoveEnd);
+    };
   }, [open, mapRef, savedMapZoom, savedMapCenter]);
 
   // Resetar data para hoje quando modal fechar e restaurar zoom do mapa
