@@ -507,9 +507,9 @@ export default function Dashboard() {
             onPositionChange={handlePositionChange}
           />
 
-          {/* Card flutuante no mapa */}
+          {/* Card flutuante no mapa - lado esquerdo para não cobrir área selecionada */}
           {showMapCard && selectedArea && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
+            <div className="absolute top-4 left-4 z-[1000] pointer-events-auto">
               <MapInfoCard
                 area={selectedArea}
                 onClose={handleCloseMapCard}
@@ -660,9 +660,9 @@ export default function Dashboard() {
               onPositionChange={handlePositionChange}
             />
 
-            {/* Card flutuante no mapa */}
+            {/* Card flutuante no mapa - lado esquerdo para não cobrir área selecionada */}
             {showMapCard && selectedArea && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
+              <div className="absolute top-4 left-4 z-[1000] pointer-events-auto">
                 <MapInfoCard
                   area={selectedArea}
                   onClose={handleCloseMapCard}

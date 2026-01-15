@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon, Move, Undo2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -386,66 +387,72 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
           </div>
         </div>
 
-        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <AlertDialogContent data-testid="dialog-delete-confirm">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Deletar Área?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja deletar {area.endereco}? Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="flex gap-2">
-              <AlertDialogCancel data-testid="button-cancel-delete">
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deleteAreaMutation.mutate()}
-                className="bg-red-600 hover:bg-red-700"
-                disabled={deleteAreaMutation.isPending}
-                data-testid="button-confirm-delete"
-              >
-                {deleteAreaMutation.isPending ? "Deletando..." : "Deletar"}
-              </AlertDialogAction>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={showUndoMowingConfirm} onOpenChange={setShowUndoMowingConfirm}>
-          <AlertDialogContent data-testid="dialog-undo-mowing-confirm">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Desfazer Roçagem?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja desfazer o registro de roçagem de {area.endereco}?
-                {area.ultimaRocagem && (
-                  <span className="block mt-2 font-medium">
-                    Data registrada: {formatDateBR(area.ultimaRocagem)}
-                    {area.registradoPor && ` (por ${area.registradoPor})`}
-                  </span>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="flex gap-2">
-              <AlertDialogCancel data-testid="button-cancel-undo-mowing">
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => undoMowingMutation.mutate()}
-                className="bg-orange-600 hover:bg-orange-700"
-                disabled={undoMowingMutation.isPending}
-                data-testid="button-confirm-undo-mowing"
-              >
-                {undoMowingMutation.isPending ? "Desfazendo..." : "Desfazer Roçagem"}
-              </AlertDialogAction>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
-
         <PhotoGalleryModal
           area={area}
           open={showPhotoGallery}
           onOpenChange={setShowPhotoGallery}
         />
       </CardContent>
+
+      {/* Dialogs renderizados via Portal para evitar problemas com overflow do Card */}
+      {createPortal(
+        <>
+          <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+            <AlertDialogContent data-testid="dialog-delete-confirm">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Deletar Área?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja deletar {area.endereco}? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex gap-2 justify-end">
+                <AlertDialogCancel data-testid="button-cancel-delete">
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteAreaMutation.mutate()}
+                  className="bg-red-600 hover:bg-red-700"
+                  disabled={deleteAreaMutation.isPending}
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteAreaMutation.isPending ? "Deletando..." : "Deletar"}
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog open={showUndoMowingConfirm} onOpenChange={setShowUndoMowingConfirm}>
+            <AlertDialogContent data-testid="dialog-undo-mowing-confirm">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Desfazer Roçagem?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja desfazer o registro de roçagem de {area.endereco}?
+                  {area.ultimaRocagem && (
+                    <span className="block mt-2 font-medium">
+                      Data registrada: {formatDateBR(area.ultimaRocagem)}
+                      {area.registradoPor && ` (por ${area.registradoPor})`}
+                    </span>
+                  )}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex gap-2 justify-end">
+                <AlertDialogCancel data-testid="button-cancel-undo-mowing">
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => undoMowingMutation.mutate()}
+                  className="bg-orange-600 hover:bg-orange-700"
+                  disabled={undoMowingMutation.isPending}
+                  data-testid="button-confirm-undo-mowing"
+                >
+                  {undoMowingMutation.isPending ? "Desfazendo..." : "Desfazer Roçagem"}
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>,
+        document.body
+      )}
     </Card>
   );
 }
