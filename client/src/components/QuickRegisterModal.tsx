@@ -203,14 +203,14 @@ export function QuickRegisterModal({
     onSuccess: (updatedArea) => {
       if (!area) return; // Safety check
       
-      // Atualizar cache de áreas leves
+      // Atualizar cache de áreas leves (preserva zoom do mapa)
       queryClient.setQueryData(["/api/areas/light", "rocagem"], (old: ServiceArea[] | undefined) => {
         if (!old) return old;
         return old.map(a => a.id === updatedArea.id ? updatedArea : a);
       });
       
-      // CRÍTICO: Invalidar cache da área individual para MapInfoCard/sidebar
-      queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+      // Atualizar cache da área individual localmente (sem invalidar para preservar zoom)
+      queryClient.setQueryData(["/api/areas", area.id], updatedArea);
       
       toast({
         title: "Roçagem Registrada!",
