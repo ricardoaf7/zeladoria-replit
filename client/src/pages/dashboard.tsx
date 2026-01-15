@@ -354,6 +354,12 @@ export default function Dashboard() {
   };
 
   const handleOpenQuickRegister = () => {
+    // Salvar zoom e centro atuais antes de abrir o modal
+    if (mapRef.current) {
+      setSavedMapZoom(mapRef.current.getZoom());
+      const center = mapRef.current.getCenter();
+      setSavedMapCenter({ lat: center.lat, lng: center.lng });
+    }
     setShowMapCard(false);
     setShowQuickRegisterModal(true);
   };

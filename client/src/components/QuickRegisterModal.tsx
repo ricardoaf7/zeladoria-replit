@@ -47,13 +47,20 @@ export function QuickRegisterModal({
   const [uploadingAntes, setUploadingAntes] = useState(false);
   const [uploadingDepois, setUploadingDepois] = useState(false);
 
-  // Resetar data para hoje quando modal fechar
+  // Resetar data para hoje quando modal fechar e restaurar zoom do mapa
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setDate(new Date()); // Reset para hoje ao fechar
       setInputValue(""); // Limpar input
       setFotoAntes(null);
       setFotoDepois(null);
+      
+      // Restaurar zoom e centro do mapa para posição salva
+      if (mapRef?.current && savedMapZoom && savedMapCenter) {
+        setTimeout(() => {
+          mapRef.current?.setView([savedMapCenter.lat, savedMapCenter.lng], savedMapZoom, { animate: false });
+        }, 50);
+      }
     }
     onOpenChange(newOpen);
   };
