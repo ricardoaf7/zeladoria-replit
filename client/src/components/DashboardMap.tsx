@@ -208,6 +208,36 @@ export function DashboardMap({
     }
   }, [currentLayer]);
 
+  // Listener para clique no mapa durante modo de relocação
+  // Permite que o usuário navegue livremente e clique para definir nova posição
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    // Só adicionar listener se estiver em modo de relocação
+    if (!relocatingAreaId || !onPositionChange) return;
+
+    const handleRelocationClick = (e: L.LeafletMouseEvent) => {
+      // Validar coordenadas
+      const { lat, lng } = e.latlng;
+      if (
+        typeof lat === 'number' && 
+        typeof lng === 'number' &&
+        !isNaN(lat) && 
+        !isNaN(lng) &&
+        isFinite(lat) && 
+        isFinite(lng)
+      ) {
+        onPositionChange(relocatingAreaId, lat, lng);
+      }
+    };
+
+    mapRef.current.on('click', handleRelocationClick);
+
+    return () => {
+      mapRef.current?.off('click', handleRelocationClick);
+    };
+  }, [relocatingAreaId, onPositionChange]);
+
   useEffect(() => {
     if (!mapRef.current) return;
 

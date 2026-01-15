@@ -121,7 +121,7 @@ export default function Dashboard() {
       setRelocatingAreaId(selectedArea.id);
       toast({
         title: "Modo de Relocação Ativo",
-        description: "Arraste o marcador azul para a nova localização.",
+        description: "Navegue pelo mapa e clique no novo local desejado.",
       });
     }
   };

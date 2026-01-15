@@ -370,7 +370,7 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
               data-testid="button-change-location"
             >
               <Move className="h-3.5 w-3.5 mr-1" />
-              {isRelocating ? "Arraste o Marcador no Mapa" : "Mudar Localização"}
+              {isRelocating ? "Clique no Novo Local" : "Mudar Localização"}
             </Button>
           )}
 
