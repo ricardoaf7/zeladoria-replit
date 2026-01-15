@@ -67,13 +67,25 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
       const res = await apiRequest("DELETE", `/api/areas/${area.id}/rocagem`, {});
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast({
         title: "Roçagem Desfeita",
         description: `O registro de roçagem foi removido de ${area.endereco}.`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "rocagem"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+      
+      // Atualizar cache localmente para evitar re-fetch (preserva zoom do mapa)
+      const updatedArea = response.area;
+      if (updatedArea) {
+        queryClient.setQueryData(["/api/areas/light", "rocagem"], (old: ServiceArea[] | undefined) => {
+          if (!old) return old;
+          return old.map(a => a.id === updatedArea.id ? updatedArea : a);
+        });
+        queryClient.setQueryData(["/api/areas", area.id], updatedArea);
+      } else {
+        // Fallback: invalidar se não tiver dados atualizados
+        queryClient.invalidateQueries({ queryKey: ["/api/areas/light", "rocagem"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+      }
       onClose();
     },
     onError: () => {
