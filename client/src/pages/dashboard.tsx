@@ -9,6 +9,7 @@ import { ManualForecastModal } from "@/components/ManualForecastModal";
 import { NewAreaModal } from "@/components/NewAreaModal";
 import { EditAreaModal } from "@/components/EditAreaModal";
 import { MapHeaderBar } from "@/components/MapHeaderBar";
+import { MowingStatsBar } from "@/components/MowingStatsBar";
 import { ExportDialog } from "@/components/ExportDialog";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { BottomSheet, type BottomSheetState } from "@/components/BottomSheet";
@@ -512,6 +513,7 @@ export default function Dashboard() {
             }}
           />
         )}
+        {selectedService === 'rocagem' && <MowingStatsBar />}
         
         <main className="flex-1 overflow-hidden relative">
           <DashboardMap
@@ -665,6 +667,7 @@ export default function Dashboard() {
               }}
             />
           )}
+          {selectedService === 'rocagem' && <MowingStatsBar />}
 
           <main className="flex-1 overflow-hidden relative">
             <DashboardMap

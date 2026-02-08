@@ -991,6 +991,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   scheduleExecutandoReset();
 
+  // Estatísticas de roçagem - metragem mensal, médias, meta
+  app.get("/api/stats/rocagem", async (req, res) => {
+    try {
+      const META_MENSAL = 3125000;
+      const now = new Date();
+      
+      // Usar timezone de Brasília para determinar datas
+      const brasiliaFormatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      const todayStr = brasiliaFormatter.format(now); // "YYYY-MM-DD"
+      const [yearStr, monthStr] = todayStr.split('-');
+      const year = parseInt(yearStr);
+      const month = parseInt(monthStr);
+      const day = parseInt(todayStr.split('-')[2]);
+      
+      // Período: parâmetros opcionais from/to, senão mês atual
+      const fromParam = req.query.from as string | undefined;
+      const toParam = req.query.to as string | undefined;
+      
+      const isCustomPeriod = !!(fromParam && toParam);
+      const monthPrefix = `${yearStr}-${monthStr}`;
+      const fromDate = fromParam || `${monthPrefix}-01`;
+      const toDate = toParam || todayStr;
+      
+      // Calcular ontem
+      const yesterdayDate = new Date(now);
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterdayStr = brasiliaFormatter.format(yesterdayDate);
+      
+      // Buscar todas áreas de roçagem
+      const rocagemAreas = await storage.getAllAreas('rocagem');
+      
+      // Áreas roçadas no período
+      const areasNoPeriodo = rocagemAreas.filter((a: ServiceArea) => {
+        if (!a.ultimaRocagem) return false;
+        return a.ultimaRocagem >= fromDate && a.ultimaRocagem <= toDate;
+      });
+      
+      // Áreas roçadas ontem
+      const areasOntem = rocagemAreas.filter((a: ServiceArea) => a.ultimaRocagem === yesterdayStr);
+      
+      // Calcular por lote
+      const calcLoteStats = (areas: ServiceArea[], areasY: ServiceArea[], lote: number) => {
+        const lotAreas = areas.filter((a: ServiceArea) => a.lote === lote);
+        const lotAreasYesterday = areasY.filter((a: ServiceArea) => a.lote === lote);
+        const totalM2 = lotAreas.reduce((sum: number, a: ServiceArea) => sum + (a.metragem_m2 || 0), 0);
+        const yesterdayM2 = lotAreasYesterday.reduce((sum: number, a: ServiceArea) => sum + (a.metragem_m2 || 0), 0);
+        return { totalM2, yesterdayM2, areasCount: lotAreas.length, areasYesterday: lotAreasYesterday.length };
+      };
+      
+      const lote1 = calcLoteStats(areasNoPeriodo, areasOntem, 1);
+      const lote2 = calcLoteStats(areasNoPeriodo, areasOntem, 2);
+      
+      const totalRocado = lote1.totalM2 + lote2.totalM2;
+      const totalOntem = lote1.yesterdayM2 + lote2.yesterdayM2;
+      const totalAreas = lote1.areasCount + lote2.areasCount;
+      
+      // Calcular dias decorridos e restantes
+      let diasDecorridos: number;
+      let diasRestantes: number;
+      
+      if (isCustomPeriod) {
+        // Para período customizado: diferença entre datas
+        const fromMs = new Date(fromDate + 'T12:00:00').getTime();
+        const toMs = new Date(toDate + 'T12:00:00').getTime();
+        diasDecorridos = Math.max(1, Math.round((toMs - fromMs) / 86400000) + 1);
+        diasRestantes = 0;
+      } else {
+        // Mês atual: dias corridos até hoje
+        diasDecorridos = day;
+        const lastDayOfMonth = new Date(year, month, 0).getDate();
+        diasRestantes = lastDayOfMonth - day;
+      }
+      
+      // Médias
+      const mediaDiaria = diasDecorridos > 0 ? totalRocado / diasDecorridos : 0;
+      const faltaParaMeta = Math.max(0, META_MENSAL - totalRocado);
+      const mediaNecessaria = diasRestantes > 0 ? faltaParaMeta / diasRestantes : 0;
+      const percentualMeta = META_MENSAL > 0 ? (totalRocado / META_MENSAL) * 100 : 0;
+      
+      res.json({
+        periodo: { from: fromDate, to: toDate },
+        metaMensal: META_MENSAL,
+        totalRocado,
+        totalAreas,
+        mediaDiaria,
+        faltaParaMeta,
+        diasDecorridos,
+        diasRestantes,
+        mediaNecessaria,
+        percentualMeta,
+        rocadoOntem: totalOntem,
+        areasOntem: lote1.areasYesterday + lote2.areasYesterday,
+        lote1: {
+          totalM2: lote1.totalM2,
+          areasCount: lote1.areasCount,
+          mediaDiaria: diasDecorridos > 0 ? lote1.totalM2 / diasDecorridos : 0,
+          rocadoOntem: lote1.yesterdayM2,
+          areasOntem: lote1.areasYesterday,
+        },
+        lote2: {
+          totalM2: lote2.totalM2,
+          areasCount: lote2.areasCount,
+          mediaDiaria: diasDecorridos > 0 ? lote2.totalM2 / diasDecorridos : 0,
+          rocadoOntem: lote2.yesterdayM2,
+          areasOntem: lote2.areasYesterday,
+        },
+      });
+    } catch (error) {
+      console.error("Error calculating mowing stats:", error);
+      res.status(500).json({ error: "Falha ao calcular estatísticas" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
