@@ -757,7 +757,7 @@ export default function Dashboard() {
 
       {/* Diálogo de confirmação para adicionar nova área */}
       <AlertDialog open={showNewAreaConfirm} onOpenChange={setShowNewAreaConfirm}>
-        <AlertDialogContent data-testid="dialog-new-area-confirm">
+        <AlertDialogContent data-testid="dialog-new-area-confirm" className="z-[9999]">
           <AlertDialogHeader>
             <AlertDialogTitle>Adicionar Nova Área?</AlertDialogTitle>
             <AlertDialogDescription>

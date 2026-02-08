@@ -175,7 +175,7 @@ export function NewAreaModal({ open, onOpenChange, lat, lng, defaultServico = "r
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" data-testid="modal-new-area">
+      <DialogContent className="sm:max-w-[500px] z-[9999]" data-testid="modal-new-area">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
