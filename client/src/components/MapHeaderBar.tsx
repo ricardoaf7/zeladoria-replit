@@ -1,12 +1,18 @@
 import { useState, useRef, useEffect, useDeferredValue, startTransition } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, X } from 'lucide-react';
+import { Search, X, MapPin, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import type { TimeRangeFilter } from './MapLegend';
 import type { ServiceArea } from '@shared/schema';
+
+interface GeocodedResult {
+  display_name: string;
+  lat: number;
+  lng: number;
+  type: string;
+}
 
 interface MapHeaderBarProps {
   searchQuery: string;
@@ -17,6 +23,7 @@ interface MapHeaderBarProps {
   totalCount?: number;
   areas?: ServiceArea[];
   onAreaSelect?: (area: ServiceArea) => void;
+  onGeocodeFlyTo?: (lat: number, lng: number, label: string) => void;
   selectedAreaId?: number | null;
   onClearSelection?: () => void;
 }
@@ -33,12 +40,10 @@ const categoryFilters = [
   { value: 'no-history' as const, label: 'Sem Registro', color: '#c0c0c0', shortLabel: 'S/Reg' },
 ];
 
-// Função auxiliar para escapar caracteres especiais de regex
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Função auxiliar para destacar o texto da busca
 function highlightMatch(text: string, query: string): JSX.Element {
   const trimmedQuery = query.trim();
   if (!trimmedQuery) return <>{text}</>;
@@ -61,6 +66,19 @@ function highlightMatch(text: string, query: string): JSX.Element {
   );
 }
 
+function simplifyDisplayName(displayName: string): string {
+  const parts = displayName.split(',').map(p => p.trim());
+  const filtered = parts.filter(p => {
+    const lower = p.toLowerCase();
+    return !lower.includes('brasil') && 
+           !lower.includes('paraná') && 
+           !lower.includes('mesorregião') &&
+           !lower.includes('microrregião') &&
+           !lower.includes('região geográfica');
+  });
+  return filtered.slice(0, 3).join(', ');
+}
+
 export function MapHeaderBar({
   searchQuery,
   onSearchChange,
@@ -70,12 +88,10 @@ export function MapHeaderBar({
   totalCount,
   areas = [],
   onAreaSelect,
+  onGeocodeFlyTo,
   selectedAreaId,
   onClearSelection,
 }: MapHeaderBarProps) {
-  // OTIMIZAÇÃO CRÍTICA: Estado local para input instantâneo
-  // Separar estado visual (localValue) da propagação ao dashboard (onSearchChange)
-  // Elimina lag de 3-4 segundos na digitação causado por re-render do dashboard
   const [localValue, setLocalValue] = useState(searchQuery);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -83,17 +99,15 @@ export function MapHeaderBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const geocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [geocodeQuery, setGeocodeQuery] = useState('');
 
-  // Sincronizar localValue quando searchQuery mudar externamente (ex: limpar busca)
   useEffect(() => {
     setLocalValue(searchQuery);
   }, [searchQuery]);
 
-  // OTIMIZAÇÃO: Debounce automático com useDeferredValue (200ms típico)
-  // Evita lag na digitação, separando input visual da busca server-side
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
-  // Busca server-side usando query debounced
   const { data: searchResults = [] } = useQuery<ServiceArea[]>({
     queryKey: ['/api/areas/search', deferredSearchQuery],
     queryFn: async () => {
@@ -103,12 +117,26 @@ export function MapHeaderBar({
       return res.json();
     },
     enabled: deferredSearchQuery.trim().length > 0,
-    staleTime: 30000, // Cache por 30 segundos
+    staleTime: 30000,
   });
 
-  const suggestions = searchResults.slice(0, 8); // Mostrar no máximo 8 sugestões
+  const { data: geocodeResults = [] } = useQuery<GeocodedResult[]>({
+    queryKey: ['/api/geocode/search', geocodeQuery],
+    queryFn: async () => {
+      if (!geocodeQuery.trim() || geocodeQuery.trim().length < 3) return [];
+      const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(geocodeQuery)}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: geocodeQuery.trim().length >= 3,
+    staleTime: 60000,
+  });
 
-  // Fechar dropdown quando clicar fora
+  const suggestions = searchResults.slice(0, 6);
+  const geocodeSuggestions = geocodeResults.slice(0, 4);
+
+  const totalSuggestions = suggestions.length + geocodeSuggestions.length;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -124,45 +152,50 @@ export function MapHeaderBar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handler de mudança com debounce e transição de baixa prioridade
   const handleInputChange = (value: string) => {
-    // 1. Atualizar input IMEDIATAMENTE (sem esperar nada)
     setLocalValue(value);
     
-    // 2. Cancelar debounce anterior
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
     
-    // 3. Propagar ao dashboard após 300ms, em transição de baixa prioridade
     debounceTimerRef.current = setTimeout(() => {
       startTransition(() => {
         onSearchChange(value);
       });
     }, 300);
+
+    if (geocodeTimerRef.current) {
+      clearTimeout(geocodeTimerRef.current);
+    }
+    geocodeTimerRef.current = setTimeout(() => {
+      setGeocodeQuery(value);
+    }, 500);
   };
 
-  // Cleanup do timer
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
+      if (geocodeTimerRef.current) {
+        clearTimeout(geocodeTimerRef.current);
+      }
     };
   }, []);
 
-  // Mostrar sugestões quando há busca e resultados
   useEffect(() => {
-    setShowSuggestions(localValue.trim().length > 0 && suggestions.length > 0);
+    const hasResults = localValue.trim().length > 0 && (suggestions.length > 0 || geocodeSuggestions.length > 0);
+    const isTyping = localValue.trim().length >= 3 && geocodeQuery.trim().length < 3;
+    setShowSuggestions(hasResults || isTyping);
     setSelectedIndex(-1);
-  }, [localValue, suggestions.length]);
+  }, [localValue, suggestions.length, geocodeSuggestions.length, geocodeQuery]);
 
-  // Calcular posição do dropdown
   useEffect(() => {
     if (showSuggestions && inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + 4, // 4px de margem
+        top: rect.bottom + 4,
         left: rect.left,
         width: rect.width
       });
@@ -179,11 +212,25 @@ export function MapHeaderBar({
     onAreaSelect?.(area);
     setLocalValue('');
     
-    // Limpar debounce pendente e propagar limpeza imediatamente
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    onSearchChange(''); // Limpar busca (mas dashboard ignora com ignoreSearchClearRef)
+    onSearchChange('');
+    setGeocodeQuery('');
+    
+    setShowSuggestions(false);
+    inputRef.current?.blur();
+  };
+
+  const handleGeocodeClick = (result: GeocodedResult) => {
+    onGeocodeFlyTo?.(result.lat, result.lng, simplifyDisplayName(result.display_name));
+    setLocalValue('');
+    
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    onSearchChange('');
+    setGeocodeQuery('');
     
     setShowSuggestions(false);
     inputRef.current?.blur();
@@ -192,40 +239,46 @@ export function MapHeaderBar({
   const handleClearSearch = () => {
     setLocalValue('');
     
-    // Limpar debounce pendente e propagar limpeza imediatamente
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
     onSearchChange('');
+    setGeocodeQuery('');
     
-    // SEMPRE limpar seleção quando X é clicado
     onClearSelection?.();
     
     setShowSuggestions(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showSuggestions || suggestions.length === 0) return;
+    if (!showSuggestions || totalSuggestions === 0) return;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
         setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : 0
+          prev < totalSuggestions - 1 ? prev + 1 : 0
         );
         break;
       
       case 'ArrowUp':
         e.preventDefault();
         setSelectedIndex(prev => 
-          prev > 0 ? prev - 1 : suggestions.length - 1
+          prev > 0 ? prev - 1 : totalSuggestions - 1
         );
         break;
       
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-          handleSuggestionClick(suggestions[selectedIndex]);
+        if (selectedIndex >= 0) {
+          if (selectedIndex < suggestions.length) {
+            handleSuggestionClick(suggestions[selectedIndex]);
+          } else {
+            const geocodeIndex = selectedIndex - suggestions.length;
+            if (geocodeIndex < geocodeSuggestions.length) {
+              handleGeocodeClick(geocodeSuggestions[geocodeIndex]);
+            }
+          }
         }
         break;
       
@@ -240,7 +293,6 @@ export function MapHeaderBar({
 
   return (
     <div className="bg-background border-b border-border px-3 py-2 space-y-2">
-      {/* Linha 1: Busca */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
@@ -251,6 +303,11 @@ export function MapHeaderBar({
             value={localValue}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => {
+              if (localValue.trim().length > 0 && totalSuggestions > 0) {
+                setShowSuggestions(true);
+              }
+            }}
             className="pl-9 pr-9 h-9 text-sm"
             data-testid="input-search-areas"
             autoComplete="off"
@@ -265,7 +322,6 @@ export function MapHeaderBar({
             </button>
           )}
 
-          {/* Dropdown de sugestões - Renderizado via Portal */}
           {showSuggestions && dropdownPosition && typeof document !== 'undefined' && createPortal(
             <div 
               ref={dropdownRef}
@@ -277,44 +333,91 @@ export function MapHeaderBar({
               }}
               data-testid="autocomplete-dropdown"
             >
-              {suggestions.map((area, index) => (
-                <button
-                  key={area.id}
-                  onClick={() => handleSuggestionClick(area)}
-                  className={`
-                    w-full text-left px-3 py-2 text-sm border-b border-border last:border-b-0
-                    transition-colors
-                    ${index === selectedIndex 
-                      ? 'bg-accent text-accent-foreground' 
-                      : 'hover:bg-accent/50'
-                    }
-                  `}
-                  data-testid={`suggestion-${area.id}`}
-                >
-                  <div className="font-medium">
-                    {highlightMatch(area.endereco || 'Sem endereço', localValue)}
+              {suggestions.length > 0 && (
+                <>
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 border-b border-border flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3" />
+                    Areas Cadastradas
                   </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {area.bairro && (
-                      <span>{highlightMatch(area.bairro, localValue)}</span>
-                    )}
-                    {area.lote && (
-                      <span className="ml-2">
-                        Lote: {highlightMatch(area.lote.toString(), localValue)}
-                      </span>
-                    )}
-                    {area.metragem_m2 && (
-                      <span className="ml-2">{area.metragem_m2}m²</span>
-                    )}
+                  {suggestions.map((area, index) => (
+                    <button
+                      key={`area-${area.id}`}
+                      onClick={() => handleSuggestionClick(area)}
+                      className={`
+                        w-full text-left px-3 py-2 text-sm border-b border-border last:border-b-0
+                        transition-colors
+                        ${index === selectedIndex 
+                          ? 'bg-accent text-accent-foreground' 
+                          : 'hover:bg-accent/50'
+                        }
+                      `}
+                      data-testid={`suggestion-${area.id}`}
+                    >
+                      <div className="font-medium">
+                        {highlightMatch(area.endereco || 'Sem endereço', localValue)}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {area.bairro && (
+                          <span>{highlightMatch(area.bairro, localValue)}</span>
+                        )}
+                        {area.lote && (
+                          <span className="ml-2">
+                            Lote: {highlightMatch(area.lote.toString(), localValue)}
+                          </span>
+                        )}
+                        {area.metragem_m2 && (
+                          <span className="ml-2">{area.metragem_m2}m²</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {geocodeSuggestions.length > 0 && (
+                <>
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 border-b border-border flex items-center gap-1.5">
+                    <Navigation className="h-3 w-3" />
+                    Outros Enderecos
                   </div>
-                </button>
-              ))}
+                  {geocodeSuggestions.map((result, index) => {
+                    const globalIndex = suggestions.length + index;
+                    return (
+                      <button
+                        key={`geo-${index}`}
+                        onClick={() => handleGeocodeClick(result)}
+                        className={`
+                          w-full text-left px-3 py-2 text-sm border-b border-border last:border-b-0
+                          transition-colors
+                          ${globalIndex === selectedIndex 
+                            ? 'bg-accent text-accent-foreground' 
+                            : 'hover:bg-accent/50'
+                          }
+                        `}
+                        data-testid={`geocode-suggestion-${index}`}
+                      >
+                        <div className="font-medium text-muted-foreground">
+                          {highlightMatch(simplifyDisplayName(result.display_name), localValue)}
+                        </div>
+                        <div className="text-xs text-muted-foreground/70 mt-0.5">
+                          OpenStreetMap
+                        </div>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+
+              {localValue.trim().length >= 3 && suggestions.length === 0 && geocodeSuggestions.length === 0 && (
+                <div className="px-3 py-3 text-sm text-muted-foreground text-center">
+                  {geocodeQuery.trim().length < 3 ? 'Buscando...' : 'Nenhum resultado encontrado'}
+                </div>
+              )}
             </div>,
             document.body
           )}
         </div>
         
-        {/* Contador de resultados */}
         {filteredCount !== undefined && totalCount !== undefined && (
           <Badge variant="outline" className="text-xs whitespace-nowrap">
             {filteredCount} / {totalCount}
@@ -322,7 +425,6 @@ export function MapHeaderBar({
         )}
       </div>
 
-      {/* Linha 2: Título e Filtros de categoria (chips horizontais com scroll) */}
       <div className="flex items-center gap-2">
         <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
           ROÇADO HÁ
@@ -357,7 +459,6 @@ export function MapHeaderBar({
         </div>
       </div>
 
-      {/* Estilo CSS para esconder scrollbar mas manter scroll */}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;

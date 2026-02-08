@@ -420,23 +420,27 @@ export default function Dashboard() {
   };
 
   const handleAreaSelectFromSearch = (area: ServiceArea) => {
-    // Centralizar mapa na área
     if (mapRef.current && area.lat && area.lng) {
       mapRef.current.setView([area.lat, area.lng], 17, { animate: true });
     }
     
-    // Selecionar área e abrir MapInfoCard
     setSelectedArea(area);
     setShowMapCard(true);
     
-    // Setar flag para ignorar próxima limpeza de search
     ignoreSearchClearRef.current = true;
     
-    // No mobile, minimizar o BottomSheet para ver melhor
     if (isMobile) {
       setBottomSheetState("minimized");
     }
   };
+
+  const handleGeocodeFlyTo = useCallback((lat: number, lng: number, _label: string) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo([lat, lng], 17, { animate: true, duration: 1.5 });
+    }
+    setSelectedArea(null);
+    setShowMapCard(false);
+  }, []);
 
   // Mobile layout com BottomSheet
   if (isMobile) {
@@ -500,6 +504,7 @@ export default function Dashboard() {
             totalCount={rocagemAreas.length}
             areas={filteredRocagemAreas}
             onAreaSelect={handleAreaSelectFromSearch}
+            onGeocodeFlyTo={handleGeocodeFlyTo}
             selectedAreaId={selectedArea?.id ?? null}
             onClearSelection={() => {
               setSelectedArea(null);
@@ -652,6 +657,7 @@ export default function Dashboard() {
               totalCount={rocagemAreas.length}
               areas={filteredRocagemAreas}
               onAreaSelect={handleAreaSelectFromSearch}
+              onGeocodeFlyTo={handleGeocodeFlyTo}
               selectedAreaId={selectedArea?.id ?? null}
               onClearSelection={() => {
                 setSelectedArea(null);
