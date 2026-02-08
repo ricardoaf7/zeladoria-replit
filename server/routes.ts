@@ -546,6 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lote1: z.number(),
           lote2: z.number(),
         }).partial().optional(),
+        metaMensal: z.number().positive().optional(),
       });
 
       const validatedConfig = configSchema.parse(req.body);
@@ -994,7 +995,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Estatísticas de roçagem - metragem mensal, médias, meta
   app.get("/api/stats/rocagem", async (req, res) => {
     try {
-      const META_MENSAL = 3125000;
+      const config = await storage.getConfig();
+      const META_MENSAL = config.metaMensal ?? 3125000;
       const now = new Date();
       
       // Usar timezone de Brasília para determinar datas

@@ -82,6 +82,7 @@ export const appConfigSchema = z.object({
     lote1: z.number(),
     lote2: z.number(),
   }),
+  metaMensal: z.number().optional(),
 });
 
 export type AppConfig = z.infer<typeof appConfigSchema>;

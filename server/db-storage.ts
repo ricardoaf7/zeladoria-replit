@@ -235,38 +235,54 @@ export class DbStorage implements IStorage {
           lote1: 85000,
           lote2: 70000,
         },
+        metaMensal: 3125000,
       };
       
-      const created = await this.db
+      const jsonbPayload = {
+        lote1: 85000,
+        lote2: 70000,
+        metaMensal: 3125000,
+      };
+      
+      await this.db
         .insert(appConfig)
-        .values({ mowingProductionRate: defaultConfig.mowingProductionRate as any })
+        .values({ mowingProductionRate: jsonbPayload as any })
         .returning();
       
       return defaultConfig;
     }
     
+    const raw = results[0].mowingProductionRate as any;
     return {
-      mowingProductionRate: results[0].mowingProductionRate as { lote1: number; lote2: number }
+      mowingProductionRate: { lote1: raw.lote1, lote2: raw.lote2 },
+      metaMensal: raw.metaMensal ?? 3125000,
     };
   }
 
   async updateConfig(config: Partial<AppConfig>): Promise<AppConfig> {
     const current = await this.getConfig();
-    const updated = {
-      mowingProductionRate: {
-        ...current.mowingProductionRate,
-        ...(config.mowingProductionRate || {})
-      }
+    const updatedRate = {
+      ...current.mowingProductionRate,
+      ...(config.mowingProductionRate || {}),
+    };
+    const updatedMeta = config.metaMensal ?? current.metaMensal ?? 3125000;
+    
+    const jsonbPayload = {
+      ...updatedRate,
+      metaMensal: updatedMeta,
     };
     
     await this.db
       .update(appConfig)
       .set({ 
-        mowingProductionRate: updated.mowingProductionRate as any,
+        mowingProductionRate: jsonbPayload as any,
         updatedAt: new Date()
       });
     
-    return updated;
+    return {
+      mowingProductionRate: { lote1: updatedRate.lote1, lote2: updatedRate.lote2 },
+      metaMensal: updatedMeta,
+    };
   }
 
   async registerDailyMowing(areaIds: number[], date: string, type: 'completed' | 'forecast' = 'completed'): Promise<void> {
