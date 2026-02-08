@@ -416,6 +416,35 @@ export class DbStorage implements IStorage {
     return results.map(this.mapDbAreaToServiceArea);
   }
 
+  async toggleExecutando(id: number, executando: boolean): Promise<ServiceArea | undefined> {
+    const results = await this.db
+      .update(serviceAreas)
+      .set({ 
+        executando, 
+        executandoDesde: executando ? new Date() : null,
+        updatedAt: new Date() 
+      })
+      .where(eq(serviceAreas.id, id))
+      .returning();
+    
+    if (results.length === 0) return undefined;
+    return this.mapDbAreaToServiceArea(results[0]);
+  }
+
+  async resetAllExecutando(): Promise<number> {
+    const result = await this.db
+      .update(serviceAreas)
+      .set({ 
+        executando: false, 
+        executandoDesde: null,
+        updatedAt: new Date() 
+      })
+      .where(eq(serviceAreas.executando, true))
+      .returning();
+    
+    return result.length;
+  }
+
   private mapDbAreaToServiceArea(dbArea: any): ServiceArea {
     return {
       id: dbArea.id,
@@ -440,6 +469,8 @@ export class DbStorage implements IStorage {
       registradoPor: dbArea.registradoPor || null,
       dataRegistro: dbArea.dataRegistro ? dbArea.dataRegistro.toISOString() : null,
       fotos: (dbArea.fotos as any) || [],
+      executando: dbArea.executando ?? false,
+      executandoDesde: dbArea.executandoDesde ? dbArea.executandoDesde.toISOString() : null,
     };
   }
 

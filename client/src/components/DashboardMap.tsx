@@ -294,7 +294,7 @@ export function DashboardMap({
 
       const isSelected = selectedAreaId === area.id;
       const color = getAreaColor(area, today, isSelected, activeFilter);
-      const isPulsing = area.status === "Em Execução";
+      const isPulsing = area.executando === true;
 
       // Verificar se esta área está em modo de relocação
       const isRelocating = relocatingAreaId === area.id;
@@ -439,7 +439,7 @@ function getAreaColor(area: ServiceArea, today: Date, isSelected = false, active
   }
 
   // Executando agora - verde forte com pulsação
-  if (area.status === "Em Execução") {
+  if (area.executando) {
     return "#10b981";
   }
 

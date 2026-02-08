@@ -230,9 +230,9 @@ export default function Dashboard() {
     // Aplicar filtro de tempo primeiro (usando valores deferidos)
     if (deferredTimeRangeFilter) {
       areas = areas.filter(area => {
-        // Filtro "Executando" - apenas áreas com status "Em Execução"
+        // Filtro "Executando" - apenas áreas marcadas como executando
         if (deferredTimeRangeFilter === 'executing') {
-          return area.status === 'Em Execução';
+          return area.executando === true;
         }
 
         // Filtro "Sem Registro" - áreas sem histórico de roçagem

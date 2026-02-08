@@ -40,6 +40,8 @@ export const serviceAreaSchema = z.object({
     url: z.string(),
     data: z.string(),
   })).default([]),
+  executando: z.boolean().optional().default(false),
+  executandoDesde: z.string().nullable().optional(),
 });
 
 export type ServiceArea = z.infer<typeof serviceAreaSchema>;
@@ -135,6 +137,8 @@ export const serviceAreas = pgTable("service_areas", {
   registradoPor: text("registrado_por"),
   dataRegistro: timestamp("data_registro"),
   fotos: jsonb("fotos").notNull().default([]),
+  executando: boolean("executando").default(false),
+  executandoDesde: timestamp("executando_desde"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -21,7 +21,7 @@ if (!fs.existsSync(uploadDir)) {
 // Função para converter ServiceArea[] para CSV compatível com Supabase
 function convertToSupabaseCSV(areas: ServiceArea[]): string {
   if (areas.length === 0) {
-    return 'id,ordem,sequencia_cadastro,tipo,endereco,bairro,metragem_m2,lat,lng,lote,status,history,polygon,scheduled_date,proxima_previsao,ultima_rocagem,manual_schedule,days_to_complete,servico,registrado_por,data_registro\n';
+    return 'id,ordem,sequencia_cadastro,tipo,endereco,bairro,metragem_m2,lat,lng,lote,status,history,polygon,scheduled_date,proxima_previsao,ultima_rocagem,manual_schedule,days_to_complete,servico,registrado_por,data_registro,executando,executando_desde\n';
   }
 
   // Headers com nomes de colunas do PostgreSQL
@@ -29,7 +29,8 @@ function convertToSupabaseCSV(areas: ServiceArea[]): string {
     'id', 'ordem', 'sequencia_cadastro', 'tipo', 'endereco', 'bairro', 
     'metragem_m2', 'lat', 'lng', 'lote', 'status', 'history', 'polygon',
     'scheduled_date', 'proxima_previsao', 'ultima_rocagem', 'manual_schedule',
-    'days_to_complete', 'servico', 'registrado_por', 'data_registro'
+    'days_to_complete', 'servico', 'registrado_por', 'data_registro',
+    'executando', 'executando_desde'
   ];
 
   // Função para escapar valores CSV
@@ -91,6 +92,8 @@ function convertToSupabaseCSV(areas: ServiceArea[]): string {
       area.servico ?? '',
       area.registradoPor ?? '',
       area.dataRegistro ?? '',
+      area.executando ?? false,
+      area.executandoDesde ?? '',
     ];
 
     csv += row.map(escapeCSVValue).join(',') + '\n';
@@ -313,6 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ultimaRocagem: area.ultimaRocagem,
         metragem_m2: area.metragem_m2,
         manualSchedule: area.manualSchedule,
+        executando: area.executando || false,
       }));
       
       res.json(lightAreas);
@@ -660,6 +664,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/areas/:id/executando", async (req, res) => {
+    try {
+      const areaId = parseInt(req.params.id);
+      const schema = z.object({
+        executando: z.boolean(),
+      });
+
+      const { executando } = schema.parse(req.body);
+      const updatedArea = await storage.toggleExecutando(areaId, executando);
+
+      if (!updatedArea) {
+        res.status(404).json({ error: "Area not found" });
+        return;
+      }
+
+      res.json(updatedArea);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to update executando status" });
+      }
+    }
+  });
+
+  app.post("/api/areas/reset-executando", async (_req, res) => {
+    try {
+      const count = await storage.resetAllExecutando();
+      res.json({ message: `${count} áreas resetadas`, count });
+    } catch (error) {
+      console.error("Error resetting executando:", error);
+      res.status(500).json({ error: "Failed to reset executando" });
+    }
+  });
+
   app.patch("/api/areas/:id/manual-forecast", async (req, res) => {
     try {
       const areaId = parseInt(req.params.id);
@@ -908,6 +947,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Reset automático de "executando" à meia-noite (horário de Brasília)
+  function getNextMidnightBrasilia(): number {
+    // Usar Intl para obter hora atual em Brasília de forma confiável
+    const formatter = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    });
+    
+    const parts = formatter.formatToParts(new Date());
+    const getPart = (type: string) => parts.find(p => p.type === type)?.value || '0';
+    
+    const brasiliaHour = parseInt(getPart('hour'));
+    const brasiliaMinute = parseInt(getPart('minute'));
+    const brasiliaSecond = parseInt(getPart('second'));
+    
+    // Milissegundos restantes até meia-noite em Brasília
+    const msUntilMidnight = ((23 - brasiliaHour) * 3600 + (59 - brasiliaMinute) * 60 + (60 - brasiliaSecond)) * 1000;
+    
+    return msUntilMidnight;
+  }
+  
+  function scheduleExecutandoReset() {
+    const msUntilMidnight = getNextMidnightBrasilia();
+    const hoursUntil = Math.round(msUntilMidnight / 3600000 * 10) / 10;
+    
+    console.log(`⏰ Reset de "executando" agendado para meia-noite (Brasília) em ~${hoursUntil}h`);
+    
+    setTimeout(async () => {
+      try {
+        const count = await storage.resetAllExecutando();
+        console.log(`🔄 Reset automático: ${count} áreas tiveram "executando" resetado à meia-noite (Brasília)`);
+      } catch (error) {
+        console.error("❌ Erro no reset automático de executando:", error);
+      }
+      // Agendar próximo reset (adiciona 1 min de margem para garantir que já é o dia seguinte)
+      setTimeout(() => scheduleExecutandoReset(), 60000);
+    }, msUntilMidnight);
+  }
+  
+  scheduleExecutandoReset();
 
   const httpServer = createServer(app);
 

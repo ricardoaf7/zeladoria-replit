@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon, Move, Undo2 } from "lucide-react";
+import { X, Calendar, MapPin, Ruler, CheckCircle2, Info, ChevronDown, ChevronUp, Hash, CalendarClock, Trash2, Edit2, Image as ImageIcon, Move, Undo2, Play, Square } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -107,8 +107,33 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
     return diffDays;
   };
 
+  const toggleExecutandoMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("PATCH", `/api/areas/${area.id}/executando`, {
+        executando: !area.executando,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/areas/light"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/areas", area.id] });
+      toast({
+        title: area.executando ? "Execução encerrada" : "Marcado como Executando",
+        description: area.executando 
+          ? `${area.endereco} não está mais em execução.`
+          : `${area.endereco} foi marcado como em execução.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar o status de execução.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const daysUntil = getDaysUntilMowing();
-  const isExecuting = area.status === "Em Execução";
+  const isExecuting = area.executando === true;
   const isJardins = area.servico === "jardins";
   const isRocagem = area.servico === "rocagem" || !area.servico;
 
@@ -284,6 +309,26 @@ export function MapInfoCard({ area, onClose, onRegisterMowing, onRegisterJardins
         <div className="flex flex-col gap-2">
           {isRocagem && (
             <>
+              <Button
+                onClick={() => toggleExecutandoMutation.mutate()}
+                variant={isExecuting ? "destructive" : "default"}
+                className="w-full"
+                data-testid="button-toggle-executando"
+                disabled={toggleExecutandoMutation.isPending}
+              >
+                {isExecuting ? (
+                  <>
+                    <Square className="h-4 w-4 mr-2" />
+                    {toggleExecutandoMutation.isPending ? "Salvando..." : "Parar Execução"}
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    {toggleExecutandoMutation.isPending ? "Salvando..." : "Marcar Executando"}
+                  </>
+                )}
+              </Button>
+
               <Button
                 onClick={onRegisterMowing}
                 className="w-full h-9 bg-green-600 hover:bg-green-700 text-white"

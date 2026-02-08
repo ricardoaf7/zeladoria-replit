@@ -13,7 +13,7 @@ export default function RelatoriosPage() {
   // Calcular estatísticas
   const stats = {
     total: areas.length,
-    executando: areas.filter(a => a.status === "Em Execução").length,
+    executando: areas.filter(a => a.executando === true).length,
     pendente: areas.filter(a => a.status === "Pendente").length,
     concluido: areas.filter(a => a.status === "Concluído").length,
     rocagem: areas.filter(a => a.servico === "rocagem" || !a.servico).length,
@@ -38,12 +38,12 @@ export default function RelatoriosPage() {
     { 
       name: "Lote 1", 
       total: areas.filter(a => a.lote === 1).length,
-      executando: areas.filter(a => a.lote === 1 && a.status === "Em Execução").length,
+      executando: areas.filter(a => a.lote === 1 && a.executando === true).length,
     },
     { 
       name: "Lote 2", 
       total: areas.filter(a => a.lote === 2).length,
-      executando: areas.filter(a => a.lote === 2 && a.status === "Em Execução").length,
+      executando: areas.filter(a => a.lote === 2 && a.executando === true).length,
     },
   ];
 

@@ -25,6 +25,10 @@ export interface IStorage {
   getConfig(): Promise<AppConfig>;
   updateConfig(config: Partial<AppConfig>): Promise<AppConfig>;
   
+  // Executando (em execução diária)
+  toggleExecutando(id: number, executando: boolean): Promise<ServiceArea | undefined>;
+  resetAllExecutando(): Promise<number>;
+  
   // Export History
   getLastExport(scope: string, type: 'full' | 'incremental'): Promise<ExportHistory | null>;
   recordExport(data: InsertExportHistory): Promise<ExportHistory>;
@@ -397,8 +401,34 @@ export class MemStorage implements IStorage {
     };
   }
 
+  async toggleExecutando(id: number, executando: boolean): Promise<ServiceArea | undefined> {
+    const area = await this.getAreaById(id);
+    if (!area) return undefined;
+    area.executando = executando;
+    area.executandoDesde = executando ? new Date().toISOString() : null;
+    return area;
+  }
+
+  async resetAllExecutando(): Promise<number> {
+    let count = 0;
+    for (const area of this.rocagemAreas) {
+      if (area.executando) {
+        area.executando = false;
+        area.executandoDesde = null;
+        count++;
+      }
+    }
+    for (const area of this.jardinsAreas) {
+      if (area.executando) {
+        area.executando = false;
+        area.executandoDesde = null;
+        count++;
+      }
+    }
+    return count;
+  }
+
   async getAreasModifiedSince(timestamp: Date): Promise<ServiceArea[]> {
-    // MemStorage: Retorna todas as áreas (não rastreia modificação)
     return this.rocagemAreas;
   }
 }
