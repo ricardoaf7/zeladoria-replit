@@ -236,12 +236,16 @@ export class DbStorage implements IStorage {
           lote2: 70000,
         },
         metaMensal: 3125000,
+        metaLote1: 1562500,
+        metaLote2: 1562500,
       };
       
       const jsonbPayload = {
         lote1: 85000,
         lote2: 70000,
         metaMensal: 3125000,
+        metaLote1: 1562500,
+        metaLote2: 1562500,
       };
       
       await this.db
@@ -253,9 +257,13 @@ export class DbStorage implements IStorage {
     }
     
     const raw = results[0].mowingProductionRate as any;
+    const metaLote1 = raw.metaLote1 ?? 1562500;
+    const metaLote2 = raw.metaLote2 ?? 1562500;
     return {
       mowingProductionRate: { lote1: raw.lote1, lote2: raw.lote2 },
-      metaMensal: raw.metaMensal ?? 3125000,
+      metaMensal: raw.metaMensal ?? (metaLote1 + metaLote2),
+      metaLote1,
+      metaLote2,
     };
   }
 
@@ -265,11 +273,15 @@ export class DbStorage implements IStorage {
       ...current.mowingProductionRate,
       ...(config.mowingProductionRate || {}),
     };
-    const updatedMeta = config.metaMensal ?? current.metaMensal ?? 3125000;
+    const updatedMetaLote1 = config.metaLote1 ?? current.metaLote1 ?? 1562500;
+    const updatedMetaLote2 = config.metaLote2 ?? current.metaLote2 ?? 1562500;
+    const updatedMeta = config.metaMensal ?? (updatedMetaLote1 + updatedMetaLote2);
     
     const jsonbPayload = {
       ...updatedRate,
       metaMensal: updatedMeta,
+      metaLote1: updatedMetaLote1,
+      metaLote2: updatedMetaLote2,
     };
     
     await this.db
@@ -282,6 +294,8 @@ export class DbStorage implements IStorage {
     return {
       mowingProductionRate: { lote1: updatedRate.lote1, lote2: updatedRate.lote2 },
       metaMensal: updatedMeta,
+      metaLote1: updatedMetaLote1,
+      metaLote2: updatedMetaLote2,
     };
   }
 

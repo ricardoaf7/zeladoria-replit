@@ -547,6 +547,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lote2: z.number(),
         }).partial().optional(),
         metaMensal: z.number().positive().optional(),
+        metaLote1: z.number().positive().optional(),
+        metaLote2: z.number().positive().optional(),
       });
 
       const validatedConfig = configSchema.parse(req.body);
@@ -996,7 +998,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/stats/rocagem", async (req, res) => {
     try {
       const config = await storage.getConfig();
-      const META_MENSAL = config.metaMensal ?? 3125000;
+      const META_LOTE1 = config.metaLote1 ?? 1562500;
+      const META_LOTE2 = config.metaLote2 ?? 1562500;
+      const META_MENSAL = config.metaMensal ?? (META_LOTE1 + META_LOTE2);
       const now = new Date();
       
       // Usar timezone de Brasília para determinar datas
@@ -1093,6 +1097,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mediaNecessaria = diasUteisRestantes > 0 ? faltaParaMeta / diasUteisRestantes : 0;
       const percentualMeta = META_MENSAL > 0 ? (totalRocado / META_MENSAL) * 100 : 0;
       
+      // Cálculos individuais por lote
+      const faltaLote1 = Math.max(0, META_LOTE1 - lote1.totalM2);
+      const faltaLote2 = Math.max(0, META_LOTE2 - lote2.totalM2);
+      const necessariaLote1 = diasUteisRestantes > 0 ? faltaLote1 / diasUteisRestantes : 0;
+      const necessariaLote2 = diasUteisRestantes > 0 ? faltaLote2 / diasUteisRestantes : 0;
+      const percentLote1 = META_LOTE1 > 0 ? (lote1.totalM2 / META_LOTE1) * 100 : 0;
+      const percentLote2 = META_LOTE2 > 0 ? (lote2.totalM2 / META_LOTE2) * 100 : 0;
+
       res.json({
         periodo: { from: fromDate, to: toDate },
         metaMensal: META_MENSAL,
@@ -1107,16 +1119,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rocadoOntem: totalOntem,
         areasOntem: lote1.areasYesterday + lote2.areasYesterday,
         lote1: {
+          meta: META_LOTE1,
           totalM2: lote1.totalM2,
           areasCount: lote1.areasCount,
           mediaDiaria: diasUteisDecorridos > 0 ? lote1.totalM2 / diasUteisDecorridos : 0,
+          faltaParaMeta: faltaLote1,
+          mediaNecessaria: necessariaLote1,
+          percentualMeta: percentLote1,
           rocadoOntem: lote1.yesterdayM2,
           areasOntem: lote1.areasYesterday,
         },
         lote2: {
+          meta: META_LOTE2,
           totalM2: lote2.totalM2,
           areasCount: lote2.areasCount,
           mediaDiaria: diasUteisDecorridos > 0 ? lote2.totalM2 / diasUteisDecorridos : 0,
+          faltaParaMeta: faltaLote2,
+          mediaNecessaria: necessariaLote2,
+          percentualMeta: percentLote2,
           rocadoOntem: lote2.yesterdayM2,
           areasOntem: lote2.areasYesterday,
         },
