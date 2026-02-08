@@ -1054,27 +1054,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalOntem = lote1.yesterdayM2 + lote2.yesterdayM2;
       const totalAreas = lote1.areasCount + lote2.areasCount;
       
-      // Calcular dias decorridos e restantes
-      let diasDecorridos: number;
-      let diasRestantes: number;
+      // Função para contar dias úteis (seg-sex) entre duas datas
+      const countWeekdays = (startStr: string, endStr: string): number => {
+        const start = new Date(startStr + 'T12:00:00');
+        const end = new Date(endStr + 'T12:00:00');
+        let count = 0;
+        const current = new Date(start);
+        while (current <= end) {
+          const dayOfWeek = current.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            count++;
+          }
+          current.setDate(current.getDate() + 1);
+        }
+        return count;
+      };
+
+      // Calcular dias úteis decorridos e restantes
+      let diasUteisDecorridos: number;
+      let diasUteisRestantes: number;
       
       if (isCustomPeriod) {
-        // Para período customizado: diferença entre datas
-        const fromMs = new Date(fromDate + 'T12:00:00').getTime();
-        const toMs = new Date(toDate + 'T12:00:00').getTime();
-        diasDecorridos = Math.max(1, Math.round((toMs - fromMs) / 86400000) + 1);
-        diasRestantes = 0;
+        diasUteisDecorridos = Math.max(1, countWeekdays(fromDate, toDate));
+        diasUteisRestantes = 0;
       } else {
-        // Mês atual: dias corridos até hoje
-        diasDecorridos = day;
+        diasUteisDecorridos = countWeekdays(`${monthPrefix}-01`, todayStr);
         const lastDayOfMonth = new Date(year, month, 0).getDate();
-        diasRestantes = lastDayOfMonth - day;
+        const lastDayStr = `${monthPrefix}-${String(lastDayOfMonth).padStart(2, '0')}`;
+        const tomorrowDate = new Date(now);
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const tomorrowStr = brasiliaFormatter.format(tomorrowDate);
+        diasUteisRestantes = countWeekdays(tomorrowStr, lastDayStr);
       }
       
-      // Médias
-      const mediaDiaria = diasDecorridos > 0 ? totalRocado / diasDecorridos : 0;
+      // Médias (baseadas em dias úteis)
+      const mediaDiaria = diasUteisDecorridos > 0 ? totalRocado / diasUteisDecorridos : 0;
       const faltaParaMeta = Math.max(0, META_MENSAL - totalRocado);
-      const mediaNecessaria = diasRestantes > 0 ? faltaParaMeta / diasRestantes : 0;
+      const mediaNecessaria = diasUteisRestantes > 0 ? faltaParaMeta / diasUteisRestantes : 0;
       const percentualMeta = META_MENSAL > 0 ? (totalRocado / META_MENSAL) * 100 : 0;
       
       res.json({
@@ -1084,8 +1100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalAreas,
         mediaDiaria,
         faltaParaMeta,
-        diasDecorridos,
-        diasRestantes,
+        diasDecorridos: diasUteisDecorridos,
+        diasRestantes: diasUteisRestantes,
         mediaNecessaria,
         percentualMeta,
         rocadoOntem: totalOntem,
@@ -1093,14 +1109,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lote1: {
           totalM2: lote1.totalM2,
           areasCount: lote1.areasCount,
-          mediaDiaria: diasDecorridos > 0 ? lote1.totalM2 / diasDecorridos : 0,
+          mediaDiaria: diasUteisDecorridos > 0 ? lote1.totalM2 / diasUteisDecorridos : 0,
           rocadoOntem: lote1.yesterdayM2,
           areasOntem: lote1.areasYesterday,
         },
         lote2: {
           totalM2: lote2.totalM2,
           areasCount: lote2.areasCount,
-          mediaDiaria: diasDecorridos > 0 ? lote2.totalM2 / diasDecorridos : 0,
+          mediaDiaria: diasUteisDecorridos > 0 ? lote2.totalM2 / diasUteisDecorridos : 0,
           rocadoOntem: lote2.yesterdayM2,
           areasOntem: lote2.areasYesterday,
         },

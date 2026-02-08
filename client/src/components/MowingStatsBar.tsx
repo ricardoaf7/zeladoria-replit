@@ -279,13 +279,13 @@ export function MowingStatsBar({ visible = true }: MowingStatsBarProps) {
             <StatItem
               label="Media diaria"
               value={`${formatM2Decimal(stats.mediaDiaria)} m²`}
-              subtext={`${stats.diasDecorridos} dias`}
+              subtext={`${stats.diasDecorridos} dias uteis`}
             />
             {!isCustomPeriod && (
               <StatItem
                 label="Falta p/ meta"
                 value={`${formatM2(stats.faltaParaMeta)} m²`}
-                subtext={`${stats.diasRestantes} dias restantes`}
+                subtext={`${stats.diasRestantes} dias uteis restantes`}
               />
             )}
             {!isCustomPeriod && (
