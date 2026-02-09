@@ -1,9 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, TrendingUp, Target, Calendar, BarChart3, AlertCircle, Pencil, Check, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, Target, Calendar, BarChart3, AlertCircle, Pencil, Check, X, FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface LoteStats {
   meta: number;
@@ -143,6 +146,83 @@ function EditableMeta({ label, value, configKey, color }: EditableMetaProps) {
   );
 }
 
+interface PdfAreaData {
+  id: number;
+  endereco: string;
+  bairro: string;
+  metragem: number;
+  lote: number;
+  ultimaRocagem: string;
+}
+
+interface PdfResponse {
+  areas: PdfAreaData[];
+  count: number;
+  totalMetragem: number;
+  periodo: { from: string; to: string };
+  loteFilter: string;
+}
+
+function generatePdf(data: PdfResponse, loteLabel: string) {
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  const fromFormatted = new Date(data.periodo.from + 'T12:00:00').toLocaleDateString('pt-BR');
+  const toFormatted = new Date(data.periodo.to + 'T12:00:00').toLocaleDateString('pt-BR');
+  const totalFormatted = data.totalMetragem.toLocaleString('pt-BR', { minimumFractionDigits: 0 });
+  const generatedAt = new Date().toLocaleString('pt-BR');
+  
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CMTU-LD - Relatorio de Rocagem', pageWidth / 2, 15, { align: 'center' });
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Periodo: ${fromFormatted} a ${toFormatted}`, pageWidth / 2, 22, { align: 'center' });
+  doc.text(`Lote: ${loteLabel}  |  Total de areas: ${data.count}  |  Metragem total: ${totalFormatted} m2`, pageWidth / 2, 28, { align: 'center' });
+  
+  const tableData = data.areas.map((area, index) => [
+    (index + 1).toString(),
+    `Lote ${area.lote}`,
+    area.endereco || '-',
+    area.bairro || '-',
+    area.metragem ? area.metragem.toLocaleString('pt-BR') + ' m2' : '-',
+    area.ultimaRocagem ? new Date(area.ultimaRocagem + 'T12:00:00').toLocaleDateString('pt-BR') : '-',
+  ]);
+  
+  autoTable(doc, {
+    startY: 33,
+    head: [['#', 'Lote', 'Local (Endereco)', 'Bairro', 'Metragem', 'Data da Rocagem']],
+    body: tableData,
+    margin: { left: 14, right: 14 },
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 12 },
+      1: { halign: 'center', cellWidth: 20 },
+      2: { cellWidth: 'auto' },
+      3: { cellWidth: 55 },
+      4: { halign: 'right', cellWidth: 30 },
+      5: { halign: 'center', cellWidth: 32 },
+    },
+  });
+  
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Pagina ${i} de ${totalPages}`, pageWidth - 15, pageHeight - 8, { align: 'right' });
+    doc.text(`Gerado em: ${generatedAt}`, 15, pageHeight - 8);
+  }
+  
+  const loteSlug = loteLabel.toLowerCase().replace(/\s+/g, '_');
+  const dateSlug = `${data.periodo.from}_a_${data.periodo.to}`;
+  doc.save(`rocagem_${loteSlug}_${dateSlug}.pdf`);
+}
+
 interface MowingStatsBarProps {
   visible?: boolean;
   onPeriodChange?: (from: string, to: string) => void;
@@ -155,6 +235,9 @@ export function MowingStatsBar({ visible = true, onPeriodChange, onPeriodClear }
   const [customTo, setCustomTo] = useState('');
   const [activeFrom, setActiveFrom] = useState('');
   const [activeTo, setActiveTo] = useState('');
+  const [showLoteSelector, setShowLoteSelector] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const { toast } = useToast();
 
   const queryParams = activeFrom && activeTo ? `?from=${activeFrom}&to=${activeTo}` : '';
 
@@ -183,7 +266,42 @@ export function MowingStatsBar({ visible = true, onPeriodChange, onPeriodClear }
     setCustomTo('');
     setActiveFrom('');
     setActiveTo('');
+    setShowLoteSelector(false);
     onPeriodClear?.();
+  };
+
+  const handlePdfClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowLoteSelector(!showLoteSelector);
+  };
+
+  const handleGeneratePdf = async (loteFilter: 'all' | '1' | '2') => {
+    const from = activeFrom || customFrom;
+    const to = activeTo || customTo;
+    if (!from || !to) return;
+
+    setGeneratingPdf(true);
+    setShowLoteSelector(false);
+    try {
+      const url = `/api/areas/by-period?from=${from}&to=${to}&details=true&lote=${loteFilter}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Falha ao buscar dados');
+      const data: PdfResponse = await res.json();
+      
+      if (data.count === 0) {
+        toast({ title: 'Nenhuma area encontrada', description: 'Nao ha areas rocadas neste periodo/lote.', variant: 'destructive' });
+        return;
+      }
+      
+      const loteLabel = loteFilter === 'all' ? 'Ambos (1 e 2)' : `Lote ${loteFilter}`;
+      generatePdf(data, loteLabel);
+      toast({ title: 'PDF gerado!', description: `${data.count} areas exportadas.` });
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      toast({ title: 'Erro ao gerar PDF', description: 'Tente novamente.', variant: 'destructive' });
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   if (isError) {
@@ -343,6 +461,36 @@ export function MowingStatsBar({ visible = true, onPeriodChange, onPeriodClear }
               >
                 Aplicar
               </Button>
+              {(isCustomPeriod || (customFrom && customTo && customFrom <= customTo)) && (
+                <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handlePdfClick}
+                    disabled={generatingPdf}
+                    data-testid="button-pdf-period"
+                  >
+                    {generatingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+                    <span className="ml-1">PDF</span>
+                  </Button>
+                  {showLoteSelector && (
+                    <div className="absolute bottom-full left-0 mb-1 bg-popover border border-border rounded-md shadow-lg p-2 z-50 min-w-[160px]" data-testid="pdf-lote-selector">
+                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">Selecione o lote</div>
+                      <div className="flex flex-col gap-1">
+                        <Button size="sm" variant="ghost" className="justify-start text-xs" onClick={() => handleGeneratePdf('1')} data-testid="button-pdf-lote1">
+                          Lote 1
+                        </Button>
+                        <Button size="sm" variant="ghost" className="justify-start text-xs" onClick={() => handleGeneratePdf('2')} data-testid="button-pdf-lote2">
+                          Lote 2
+                        </Button>
+                        <Button size="sm" variant="ghost" className="justify-start text-xs" onClick={() => handleGeneratePdf('all')} data-testid="button-pdf-ambos">
+                          Ambos (Lote 1 e 2)
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {isCustomPeriod && (
                 <Button
                   size="sm"

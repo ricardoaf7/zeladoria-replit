@@ -350,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Retorna IDs de áreas roçadas em um período específico
   app.get("/api/areas/by-period", async (req, res) => {
     try {
-      const { from, to } = req.query;
+      const { from, to, details, lote } = req.query;
       if (!from || !to || typeof from !== 'string' || typeof to !== 'string') {
         return res.status(400).json({ error: "Parâmetros 'from' e 'to' são obrigatórios (YYYY-MM-DD)" });
       }
@@ -359,15 +359,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fromDate = new Date(from + 'T00:00:00');
       const toDate = new Date(to + 'T23:59:59');
       
-      const matchingIds = allAreas
+      const matchingAreas = allAreas
         .filter(area => {
           if (!area.ultimaRocagem) return false;
           const mowDate = new Date(area.ultimaRocagem);
-          return mowDate >= fromDate && mowDate <= toDate;
-        })
-        .map(area => area.id);
+          if (mowDate < fromDate || mowDate > toDate) return false;
+          if (lote && typeof lote === 'string' && lote !== 'all') {
+            const loteNum = parseInt(lote);
+            if (area.lote !== loteNum) return false;
+          }
+          return true;
+        });
       
-      res.json({ ids: matchingIds, count: matchingIds.length });
+      if (details === 'true') {
+        const detailedAreas = matchingAreas
+          .map(area => ({
+            id: area.id,
+            endereco: area.endereco || '',
+            bairro: area.bairro || '',
+            metragem: area.metragem_m2 || 0,
+            lote: area.lote || 0,
+            ultimaRocagem: area.ultimaRocagem,
+          }))
+          .sort((a, b) => {
+            if (a.lote !== b.lote) return a.lote - b.lote;
+            return a.endereco.localeCompare(b.endereco, 'pt-BR');
+          });
+        
+        const totalMetragem = detailedAreas.reduce((sum, a) => sum + a.metragem, 0);
+        
+        res.json({ 
+          areas: detailedAreas, 
+          count: detailedAreas.length,
+          totalMetragem,
+          periodo: { from, to },
+          loteFilter: lote || 'all'
+        });
+      } else {
+        const matchingIds = matchingAreas.map(area => area.id);
+        res.json({ ids: matchingIds, count: matchingIds.length });
+      }
     } catch (error) {
       console.error("Error fetching areas by period:", error);
       res.status(500).json({ error: "Falha ao buscar áreas por período" });
