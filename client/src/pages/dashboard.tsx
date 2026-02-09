@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRangeFilter>(null);
   const [customFilterDateRange, setCustomFilterDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [statsPeriod, setStatsPeriod] = useState<{ from: string; to: string } | null>(null);
   const [savedMapZoom, setSavedMapZoom] = useState<number | null>(null);
   const [savedMapCenter, setSavedMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [relocatingAreaId, setRelocatingAreaId] = useState<number | null>(null);
@@ -203,6 +204,24 @@ export default function Dashboard() {
     queryKey: ["/api/config"],
   });
 
+  const { data: periodAreaIds } = useQuery<{ ids: number[]; count: number }>({
+    queryKey: ['/api/areas/by-period', statsPeriod?.from, statsPeriod?.to],
+    queryFn: async () => {
+      const res = await fetch(`/api/areas/by-period?from=${statsPeriod!.from}&to=${statsPeriod!.to}`);
+      if (!res.ok) throw new Error('Failed to fetch period areas');
+      return res.json();
+    },
+    enabled: !!statsPeriod,
+  });
+
+  const handleStatsPeriodChange = useCallback((from: string, to: string) => {
+    setStatsPeriod({ from, to });
+  }, []);
+
+  const handleStatsPeriodClear = useCallback(() => {
+    setStatsPeriod(null);
+  }, []);
+
   // OTIMIZAÇÃO CRÍTICA: Usar useDeferredValue para separar atualização urgente (input)
   // de computação pesada (filtros). Evita lag de 3-4 segundos na digitação.
   // React prioriza atualização do input e processa filtros depois
@@ -304,12 +323,43 @@ export default function Dashboard() {
     });
   }, [rocagemAreas, deferredFilters, deferredTimeRangeFilter, deferredCustomFilterDateRange]);
 
-  const hasActiveFilters = filters.search || 
+  const periodActive = !!statsPeriod;
+  
+  const hasOtherFilters = !!(filters.search || 
     (filters.bairro && filters.bairro !== "all") || 
     (filters.lote && filters.lote !== "all") || 
     (filters.status && filters.status !== "all") || 
     (filters.tipo && filters.tipo !== "all") ||
-    timeRangeFilter !== null;
+    timeRangeFilter !== null);
+  
+  const hasActiveFilters = hasOtherFilters || periodActive;
+
+  const computedFilteredAreaIds = useMemo(() => {
+    if (!hasOtherFilters && !periodActive) return undefined;
+    
+    const periodSet = periodActive && periodAreaIds ? new Set(periodAreaIds.ids) : null;
+    
+    if (periodActive && !periodAreaIds) {
+      return new Set<number>();
+    }
+    
+    if (hasOtherFilters && periodSet) {
+      const baseIds = new Set(filteredRocagemAreas.map(a => a.id));
+      const intersected = new Set<number>();
+      baseIds.forEach(id => { if (periodSet.has(id)) intersected.add(id); });
+      return intersected;
+    }
+    
+    if (periodSet) {
+      return periodSet;
+    }
+    
+    if (hasOtherFilters) {
+      return new Set(filteredRocagemAreas.map(a => a.id));
+    }
+    
+    return undefined;
+  }, [filteredRocagemAreas, periodAreaIds, periodActive, hasOtherFilters]);
 
   // Zoom automático só na primeira seleção de cada área (não em re-renders)
   // DESABILITADO quando modal de registro está aberto para preservar zoom do usuário
@@ -501,7 +551,7 @@ export default function Dashboard() {
             onSearchChange={(query) => setFilters({ ...filters, search: query })}
             activeFilter={timeRangeFilter}
             onFilterChange={handleTimeRangeFilterChange}
-            filteredCount={filteredRocagemAreas.length}
+            filteredCount={computedFilteredAreaIds ? computedFilteredAreaIds.size : filteredRocagemAreas.length}
             totalCount={rocagemAreas.length}
             areas={filteredRocagemAreas}
             onAreaSelect={handleAreaSelectFromSearch}
@@ -513,7 +563,7 @@ export default function Dashboard() {
             }}
           />
         )}
-        {selectedService === 'rocagem' && <MowingStatsBar />}
+        {selectedService === 'rocagem' && <MowingStatsBar onPeriodChange={handleStatsPeriodChange} onPeriodClear={handleStatsPeriodClear} />}
         
         <main className="flex-1 overflow-hidden relative">
           <DashboardMap
@@ -526,7 +576,7 @@ export default function Dashboard() {
             }}
             onAreaClick={handleAreaClick}
             onMapClick={handleMapClick}
-            filteredAreaIds={hasActiveFilters ? new Set(filteredRocagemAreas.map(a => a.id)) : undefined}
+            filteredAreaIds={computedFilteredAreaIds}
             mapRef={mapRef}
             searchQuery={filters.search}
             activeFilter={timeRangeFilter}
@@ -655,7 +705,7 @@ export default function Dashboard() {
               onSearchChange={(query) => setFilters({ ...filters, search: query })}
               activeFilter={timeRangeFilter}
               onFilterChange={handleTimeRangeFilterChange}
-              filteredCount={filteredRocagemAreas.length}
+              filteredCount={computedFilteredAreaIds ? computedFilteredAreaIds.size : filteredRocagemAreas.length}
               totalCount={rocagemAreas.length}
               areas={filteredRocagemAreas}
               onAreaSelect={handleAreaSelectFromSearch}
@@ -667,7 +717,7 @@ export default function Dashboard() {
               }}
             />
           )}
-          {selectedService === 'rocagem' && <MowingStatsBar />}
+          {selectedService === 'rocagem' && <MowingStatsBar onPeriodChange={handleStatsPeriodChange} onPeriodClear={handleStatsPeriodClear} />}
 
           <main className="flex-1 overflow-hidden relative">
             <DashboardMap
@@ -680,7 +730,7 @@ export default function Dashboard() {
               }}
               onAreaClick={handleAreaClick}
               onMapClick={handleMapClick}
-              filteredAreaIds={hasActiveFilters ? new Set(filteredRocagemAreas.map(a => a.id)) : undefined}
+              filteredAreaIds={computedFilteredAreaIds}
               searchQuery={filters.search}
               activeFilter={timeRangeFilter}
               mapRef={mapRef}

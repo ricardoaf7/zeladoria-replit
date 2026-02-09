@@ -145,9 +145,11 @@ function EditableMeta({ label, value, configKey, color }: EditableMetaProps) {
 
 interface MowingStatsBarProps {
   visible?: boolean;
+  onPeriodChange?: (from: string, to: string) => void;
+  onPeriodClear?: () => void;
 }
 
-export function MowingStatsBar({ visible = true }: MowingStatsBarProps) {
+export function MowingStatsBar({ visible = true, onPeriodChange, onPeriodClear }: MowingStatsBarProps) {
   const [expanded, setExpanded] = useState(false);
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
@@ -172,6 +174,7 @@ export function MowingStatsBar({ visible = true }: MowingStatsBarProps) {
     if (customFrom && customTo && customFrom <= customTo) {
       setActiveFrom(customFrom);
       setActiveTo(customTo);
+      onPeriodChange?.(customFrom, customTo);
     }
   };
 
@@ -180,6 +183,7 @@ export function MowingStatsBar({ visible = true }: MowingStatsBarProps) {
     setCustomTo('');
     setActiveFrom('');
     setActiveTo('');
+    onPeriodClear?.();
   };
 
   if (isError) {
